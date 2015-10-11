@@ -17,13 +17,11 @@
 				"OK" :  {
 					close : true,
 					updateFields : true,
-					click : function(a,b) {
-						console.warn("Ja", a,b);
-					},
 				},
 				"Cancel" : false // And this will just close the dialog
 			},
 			args : {"normal argument":"and its value"},
+			
 			fieldArgs : {
 				boundArgument : '#tbxName'
 			},
@@ -39,8 +37,8 @@
 		dialogr.open({
 			buttons : {
 				'Spara' : {  
+					"class" : 'save',
 					close : true,
-
 					updateFields : true // fieldArgs will automatically be updated
 				},
 				'Avbryt' : false

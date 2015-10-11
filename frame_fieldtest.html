@@ -8,22 +8,7 @@
 <body>
 		<h1>Change field value</h1>
 		<pre id="arguments"></pre>
-		<input type="text" id="updateBoundValue" />
-
-		<p>When setting the bound argument value using the 'return' method, the bound field will automatically update.</p>
-		<p>On this page you must manually update the return value with the name of the bound property.</p>
-		<p>Note that this will only happend when the dialog is closed with the status SUCCESS.</p>
-		
-		<p>When setting the bound argument value using the 'return' method, the bound field will automatically update.</p>
-		<p>On this page you must manually update the return value with the name of the bound property.</p>
-		<p>Note that this will only happend when the dialog is closed with the status SUCCESS.</p>
-		
-		<p>When setting the bound argument value using the 'return' method, the bound field will automatically update.</p>
-		<p>On this page you must manually update the return value with the name of the bound property.</p>
-		<p>Note that this will only happend when the dialog is closed with the status SUCCESS.</p>
-		
-		<h2>Send back: </h2>
-		<pre id="return"></pre>
+		<input type="text" id="updateBoundValue" /> <a href="javascript:dialogr.click('Ok')">ok</a>
 
 	<script type="text/javascript">
 
@@ -36,9 +21,7 @@
 		// - if a button with "updateFields" was pressed - field values will be set automatically
 		dialogr.updateDialogResult(function() {
 			return {
-				boundArgument : document.getElementById('updateBoundValue').value,
-				boundCheckbox : false,
-				boundList : 'Bur'
+				boundArgument : document.getElementById('updateBoundValue').value
 			};
 		});
 

@@ -6,7 +6,9 @@
 	font-family: arial;
 	background-color: darkslategray;
 	color: #fff;
-	box-sizing: border-box;
+}
+#dialogr-header h1 {
+	font-weight: normal;
 }
 #dialogr-overlay {
 	z-index: 30;
@@ -20,7 +22,7 @@ div#dialogr-content {
 	color: darkslategray; 
 	background-color: #eee;
 	border-top: 2px solid #ccc;
-	padding: 14px;
+	padding: 6px;
 	box-sizing: border-box;
 	text-align: right
 }
@@ -30,6 +32,9 @@ div#dialogr-content {
 	border: 1px solid #ccc;
 	font-size: 0.9em;
 	padding: 4px 8px;
+}
+#dialogr-footer button.save {
+	font-weight: bold;
 }
 #dialogr-footer button:hover {
 	background-color: #eee;

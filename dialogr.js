@@ -32,32 +32,31 @@
             url : null,
             html : null,
             title : null,
-
             makeButton : null,
-
-            headerTemplate : '<div id="{{id}}"><h1>{{title}}</h1></div>',
-            footerTemplate : '<div id="{{id}}" class="buttons"></div>',
-            buttonTemplate : '<button id="{{id}}" type="button">{{text}}</button>',
-            iframeTemplate : '<iframe id="{{id}}" frameborder="0" src="{{url}}"></iframe>',
-            contentTemplate : '<div id="{{id}}">{{html}}</div>',
             wrapperTemplate : '<div id="{{id}}"></div>'
-         }
-        // Contains info about the current dialog
-        ;
+         };
 
+    function defaults(defaults) {
+        dialogDefaults = extend(dialogDefaults, defaults);
+    }
 
     function makeButton(options, args) {
-        var elm, attr = { type : 'button', id : options.idPrefix + "btn-" + idFromString(args.key)}, text;
+        var elm, cfg = args.config, attr = { type : 'button', id : options.idPrefix + "btn-" + idFromString(args.key)}, text;
 
-        if (args.config) {
-            text = args.config.text ? args.config.text : "";
+        if (cfg) {
+            text = args.config.text ? cfg.text : "";
         }
         if(!text) text = args.key;
 
         elm = createElement('button', attr);
         elm.innerText = text;
+        if (cfg['class']) addElementClass(elm, cfg['class']);
+        if (cfg.close) addElementClass(elm, "close");
+        if (cfg.updateFields) addElementClass(elm, "update-fields");
         return elm;
     }
+
+
 
     function idFromString(str) {
         if (str.match(/^[a-zA-Z]/) === null) {
@@ -112,7 +111,7 @@
             keys,
             i;
 
-        if (typeof options === "undefined") return defaults;
+        if (isUndefined(options)) return defaults;
 
         keys = getKeys(defaults);
         for (i=0; i < keys.length; i += 1) {
@@ -160,12 +159,23 @@
      * @return {[type]}         [description]
      */
     function createElement(tagName, attr, css) {
+        var elmId, i = tagName.indexOf('#');
+        if (i !== -1) {
+            elmId = dialog.options.idPrefix + idFromString(tagName.substr(tagName.indexOf('#')+1));
+            tagName = tagName.substr(0, tagName.indexOf('#'))
+        }
+
         var elm = document.createElement(tagName);
-        if (typeof css !== "undefined") {
+        if (!isUndefined(css)) {
             setElementStyle(elm, css);
         }
-        if (typeof attr !== "undefined") {
+
+        if (!isUndefined(attr)) {
             setElementAttributes(elm, attr);
+        }
+
+        if (elmId) {
+            setElementAttributes(elm, {id : elmId});
         }
         return elm;
     }
@@ -180,15 +190,49 @@
     function setElementAttributes(elm, attrObj) {
         var propertyNames = getKeys(attrObj),
             i;
-        if (typeof elm != "undefined") {
+        if (!isUndefined(elm)) {
             for (i=0; i < propertyNames.length; i+=1) {
-                if (typeof attrObj[propertyNames[i]] === "undefined" || attrObj[propertyNames[i]] === null) {
+                var o = attrObj[propertyNames[i]];
+
+                if (isUndefined(o) || o === null) {
                     if (elm.hasAttribute(propertyNames[i])) {
                         elm.removeAttribute(propertyNames[i]);
                     }
                 } else {
-                    elm.setAttribute(propertyNames[i], attrObj[propertyNames[i]]);
+                    elm.setAttribute(propertyNames[i], o);
                 }
+            }
+        }
+    }
+
+    var storedStyles = {};
+
+    function preserveStyles(selector, styles) {
+
+        if( selector.constructor == Array ) {
+            for (var i=0; i < selector.length; i++) {
+                preserveStyles(selector[i], styles);
+            }
+        } else {
+            var e = findElement(selector);
+            if (e) {
+                storedStyles[selector] = {};
+                for (var i=0; i < styles.length; i += 1) {
+                    storedStyles[selector][styles[i]] = getStyle(e, styles[i]);
+                }
+            }
+        }
+    }
+
+    function restoreStyles(selector) {
+        if( selector.constructor == Array ) {
+            for (var i=0; i < selector.length; i += 1) {
+                restoreStyles(selector[i]);
+            }
+        } else {
+            var e = findElement(selector);
+            if (e && !isUndefined(storedStyles[selector])) {
+                setElementStyle(e, storedStyles[selector]);
             }
         }
     }
@@ -251,20 +295,32 @@
         }
     }
 
+    function click(key) {
+        if (inDialog()) {
+            return window.parent.dialogr.click(key);
+        }
+        if (dialog.options.buttons) {
+            var keys = getKeys(dialog.options.buttons),
+                i;
+            for (i = 0; i < keys.length; i += 1) {
+                var btn = dialog.options.buttons[keys[i]]._runtime.elm;
+                if (!isUndefined(key) || key === keys[i] ) {
+                    btn.click();
+                }
+            }
+        }
+    }
+
     function close() {
         if (dialog && dialog.wrapper) {
             removeEvent(document, 'keydown', keyEventListener);
             removeEvent(window, 'resize', resizeDialog);
+            removeEvent(window, 'wheel', preventWheelScroll);
 
             dialog.wrapper.parentElement.removeChild(dialog.wrapper);
             dialog.overlay.parentElement.removeChild(dialog.overlay);
             dialog = null;
-
-            var d = document.getElementsByTagName('body');
-            if (d.length == 1) {
-                setElementStyle(d[0], restoreCSS.body)
-            }
-
+            restoreStyles(['body','html']);
         }
     }
 
@@ -274,33 +330,35 @@
         }
     }
 
+    function callMakeFunction(name, element, appendTo) {
+        var o = dialog.options;
+        if (isFunction(o['make' + name])) {
+            element = o['make' + name]({elm : element});
+        }
+        if (isElement(element)) appendTo.appendChild(element);
+        return element;
+    }
+
+    function preventWheelScroll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
     function open(options) {
         var body, elm, docElm = document.documentElement,
             w = Math.max(docElm.clientWidth, window.innerWidth || 0),
             h = Math.max(docElm.clientHeight, window.innerHeight || 0),
             createFooter = false;
 
-
-
-        var d = document.getElementsByTagName('body');
-        if (d.length == 1) {
-            restoreCSS.body = {
-                'overflow-y' : getStyle(d[0], 'overflow-y')
-            }
-            setElementStyle(d[0], {
-                'overflow-y' : 'hidden'
-            })
-        }
-
-
+        preserveStyles(['body', 'html'], ['overflow-y']);
         
         
         if (options && options.footerTemplate) createFooter = true;
-        if (options && typeof options.buttons === "undefined") options.buttons = defaultButtons;
-
+        if (options && isUndefined(options.buttons)) options.buttons = defaultButtons;
 
         // Merge options with defaults
         options = extend(dialogDefaults, options);
+        dialog = {options : options};
 
         if (options.buttons) {
             keys = getKeys(options.buttons);
@@ -322,7 +380,6 @@
             }
         }
 
-
         // Try to use 'body' if no container is specified
         if (!options.container) {
             body = document.getElementsByTagName('body');
@@ -335,65 +392,49 @@
             return;
         }
 
+        container = options.container;
+
         // Kill any old dialog laying around! One dialogr at a time please!
-        elm = document.getElementById(options.idPrefix + 'wrapper');
-        if (elm) {
-            elm.parentElement.removeChild(elm);
-        }
+        close();
 
         // Setup this dialog
-        dialog = {
-            options : options,
-            wrapper : createFromTemplate(options.wrapperTemplate, { id : options.idPrefix + 'wrapper'})
-        };
-        setElementStyle(dialog.wrapper, {
-            visibility:'hidden',
-            position : 'fixed'
-        });
-        dialog.overlay = document.createElement('div');
-        setElementAttributes(dialog.overlay, {
-            id : options.idPrefix + 'overlay'
-        });
-        options.container.appendChild(dialog.overlay);
-        options.container.appendChild(dialog.wrapper);
+        dialog.wrapper = createElement("div#wrapper", null, {visibility:'hidden', position : 'fixed', 'z-index' : 50001 })
+        dialog.overlay = createElement('div#overlay', null, {visibility:'hidden', 'z-index' : 5000});
 
-        setElementStyle(dialog.wrapper, {'z-index' : 50001});
-        
-        setElementStyle(dialog.overlay, {visibility : 'hidden'});
+        container.appendChild(dialog.overlay);
+        container.appendChild(dialog.wrapper);
 
-         if (options.headerTemplate && options.title) {
-            dialog.header = createFromTemplate(options.headerTemplate, {"title" : options.title, "id" : options.idPrefix + 'header'}); 
-            dialog.wrapper.appendChild(dialog.header);
-         }
+        if (options.title) {
+
+            var h = createElement('div#header', null, {'overflow-y' : 'auto'});
+            var he = createElement('h1');
+            he.innerText = options.title;
+            h.appendChild(he);
+
+            dialog.header = callMakeFunction('Header', h, dialog.wrapper);
+        }
+
         if (options.html) {
-            dialog.content = createFromTemplate(options.contentTemplate, {"html" : options.html, "id" : options.idPrefix + 'content'});
-            setElementStyle(dialog.content, {
-                'overflow-y' : 'auto'
-            });
-            dialog.wrapper.appendChild(dialog.content);
+            dialog.content = callMakeFunction('Content', createElement('div#content', null, {'overflow-y' : 'auto'}), dialog.wrapper);
         } else if (options.url) {
-            dialog.content = createFromTemplate(options.iframeTemplate, {"url" : options.url, "id" : options.idPrefix + 'content'});
-            dialog.wrapper.appendChild(dialog.content);
+            dialog.content = callMakeFunction('Content', createElement('iframe#content', {"src" : options.url, "frameborder" : 0}), dialog.wrapper);
+            /*addEvent(dialog.content, 'load', function() {
+                alert("AHA!");
+            });*/
         }
 
         if (createFooter || options.buttons) {
-            dialog.footer = createFromTemplate(options.footerTemplate, {"id" : options.idPrefix + 'footer'}); 
-            setElementStyle(dialog.footer, {
-                'position' : 'absolute'
-            });
-            dialog.wrapper.appendChild(dialog.footer);
+            dialog.footer = createElement('div#footer', {"class" : "buttons"}, {'position' : 'absolute'});
+            dialog.footer = callMakeFunction('Footer', dialog.footer, dialog.wrapper);
         }
 
-
-        
-
-        if (options.buttons) {
+        if (options.buttons && dialog.footer) {
             var keys = getKeys(options.buttons),
                 container = hasClass(dialog.footer, 'buttons') ? dialog.footer : dialog.footer.getElementsByClassName('buttons');
 
             if (container.length && container.length == 1) container = container[0];
 
-            if(container) {
+            if(container && container.appendChild) {
                 for (var i=0; i < keys.length; i += 1) {
 
                     var btnArgs = {
@@ -438,7 +479,7 @@
                                     i;
                                 for (i=0; i < keys.length; i++) {
                                     var elm = findElement( dialog.options.fieldArgs[keys[i]] );
-                                    if (typeof eventArgs.result[keys[i]] !== "undefined") {
+                                    if (!isUndefined(eventArgs.result[keys[i]])) {
                                         setFieldValue(elm, eventArgs.result[keys[i]]);
                                     }
                                 }
@@ -476,6 +517,7 @@
 
         setElementStyle(dialog.wrapper, {visibility : 'visible'});
         addEvent(document, 'keydown', keyEventListener);
+        addEvent(window, 'wheel', preventWheelScroll);
     }
 
     function hasClass(elm, className) {
@@ -496,7 +538,7 @@
     }
 
     function addEvent(object, type, callback) {
-        if (object == null || typeof(object) == 'undefined') return;
+        if (object == null || isUndefined(object)) return;
         if (object.addEventListener) {
             object.addEventListener(type, callback, false);
         } else if (object.attachEvent) {
@@ -507,7 +549,7 @@
     }
 
     function removeEvent(object, type, callback) {
-        if (object == null || typeof(object) == 'undefined') return;
+        if (object == null || isUndefined(object)) return;
         if (object.removeEventListener) {
             object.removeEventListener(type, callback, false);
         } else if (object.detachEvent) {
@@ -531,7 +573,10 @@
             dialogWidth = w + 'px';
             dialogHeight = h + 'px';
             addElementClass(dialog.wrapper, 'dialogr-fullscreen');
+            setElementStyle(findElement('body'), {'overflow-y' : 'hidden'});
+            setElementStyle(findElement('html'), {'overflow-y' : 'hidden'});
         } else {
+            restoreStyles(['body', 'html']);
             removeElementClass(dialog.wrapper, 'dialogr-fullscreen');
             if (getStyle(dialog.wrapper, 'box-sizing') == "border-box") {
                 var d = getElementSpacing(dialog.wrapper, true);
@@ -684,9 +729,11 @@
             elm = document.getElementById(selector.substr(1));
         } else if (selector[0] == ".") {
             elm = document.getElementsByClassName(selector.substr(1));
+            if (elm && isUndefined(elm.length)) return elm;
             if (elm.length > 0) {elm = elm[0];} else {elm = null;}
         } else {
             elm = root.querySelector(selector);
+            if (elm && isUndefined(elm.length)) return elm;
             if (elm.length > 0) {elm = elm[0];} else {elm = null;}
         }
         return elm;
@@ -694,20 +741,22 @@
 
     function getArgs() {
         if (dialog) {
-            var fieldArgs = {};
-
-            if (dialog.options.fieldArgs) {
-                var keys = getKeys(dialog.options.fieldArgs),
+            var fieldArgs = {},
+                o = dialog.options,
+                keys,
+                i,
+                elm;
+            if (o.fieldArgs) {
+                keys = getKeys(o.fieldArgs),
                     elm = null;
-                for (var i=0; i < keys.length; i++) {
-                    elm = findElement(dialog.options.fieldArgs[keys[i]]);
+                for (i=0; i < keys.length; i++) {
+                    elm = findElement(o.fieldArgs[keys[i]]);
                     if (elm) {
                         fieldArgs[keys[i]] = getFieldValue(elm);
                     }
                 }
             }
-
-            return extend(dialog.options.args, fieldArgs);
+            return extend(o.args, fieldArgs);
         }
         if (inDialog()) {
             return window.parent.dialogr.getArgs();
@@ -775,7 +824,7 @@
                 i;
             for (i = 0; i < keys.length; i += 1) {
                 var btn = dialog.options.buttons[keys[i]]._runtime.elm;
-                if (typeof key === "undefined" || key === keys[i] ) {
+                if (!isUndefined(key) || key === keys[i] ) {
                     setElementAttributes(btn, {
                         disabled : "disabled"
                     });
@@ -784,6 +833,10 @@
             }
         }
         
+    }
+
+    function isUndefined(obj) {
+        return typeof obj === "undefined";
     }
 
     function enableButton(key) {
@@ -798,7 +851,7 @@
                 i;
             for (i = 0; i < keys.length; i += 1) {
                 var btn = dialog.options.buttons[keys[i]]._runtime.elm;
-                if (typeof key === "undefined" || key === keys[i] ) {
+                if (!isUndefined(key) || key === keys[i] ) {
                     setElementAttributes(btn, {
                         disabled : null
                     });
@@ -818,7 +871,8 @@
         isOpen : isOpen,
 
         disableButton : disableButton,
-        enableButton : enableButton
+        enableButton : enableButton,
+        click : click
     };
 
 }(window));
