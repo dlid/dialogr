@@ -1,0 +1,37 @@
+#dialogr-wrapper {
+	background-color: #fff;
+	border: 2px solid darkslategray ;
+}
+#dialogr-header {
+	font-family: arial;
+	background-color: darkslategray;
+	color: #fff;
+	box-sizing: border-box;
+}
+#dialogr-overlay {
+	z-index: 30;
+}
+div#dialogr-content {
+	background-color: #fff;
+	margin: 10px;
+	
+}
+#dialogr-footer {
+	color: darkslategray; 
+	background-color: #eee;
+	border-top: 2px solid #ccc;
+	padding: 14px;
+	box-sizing: border-box;
+	text-align: right
+}
+
+#dialogr-footer button {
+	margin-right: 10px;
+	border: 1px solid #ccc;
+	font-size: 0.9em;
+	padding: 4px 8px;
+}
+#dialogr-footer button:hover {
+	background-color: #eee;
+}
+#dialogr-header h1 {font-size: 1.1em;margin:0;padding:6px;}

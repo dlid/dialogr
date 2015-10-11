@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<script src="dialogr.js"></script>
+	<style type="text/css">
+		body {background-color: #fff;}
+	</style>
+
+
+<body>
+	
+		<h1>This is an iFrame</h1>
+		
+		<p>dialogr is included in this frame as well. Dialogr will know that it's inside a dialog.</p>
+		
+		<h2>Dialog arguments:</h2>
+		<pre id="arguments"></pre>
+
+		<p><a href="javascript:dialogr.disableButton()">Disable buttons</a> | <a href="javascript:dialogr.enableButtons()">Enable buttons</a> | <a href="javascript:dialogr.close()">Close dialog</a></p>
+		<hr />
+		<h2>Dialog result</h2>
+		<p>You can set the dialog return value at any time. When a button is triggered the dialog return value will be available.</p>
+		<p><a href="javascript:dialogr.return(prompt('Enter the result'))">Set dialog result...</a> | 
+		<a href="javascript:dialogr.click('ok')">Click the 'OK' button</a> | 
+		<a href="javascript:dialogr.click('cancel')">Click the 'Cancel' button</a></p>
+	
+
+	<script type="text/javascript">
+		// We can easily get the arguments that were used when opening dialog using dialogr.getArgs()
+		document.getElementById('arguments').innerHTML = JSON.stringify(dialogr.getArgs());
+	</script>
+
+</body>
+</html>

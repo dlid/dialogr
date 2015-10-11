@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>x</title>
+		<script src="dialogr.js?x"></script>
+	</head>
+	
+<body>
+		<h1>Change field value</h1>
+		<pre id="arguments"></pre>
+		<input type="text" id="updateBoundValue" />
+
+		<p>When setting the bound argument value using the 'return' method, the bound field will automatically update.</p>
+		<p>On this page you must manually update the return value with the name of the bound property.</p>
+		<p>Note that this will only happend when the dialog is closed with the status SUCCESS.</p>
+		
+		<p>When setting the bound argument value using the 'return' method, the bound field will automatically update.</p>
+		<p>On this page you must manually update the return value with the name of the bound property.</p>
+		<p>Note that this will only happend when the dialog is closed with the status SUCCESS.</p>
+		
+		<p>When setting the bound argument value using the 'return' method, the bound field will automatically update.</p>
+		<p>On this page you must manually update the return value with the name of the bound property.</p>
+		<p>Note that this will only happend when the dialog is closed with the status SUCCESS.</p>
+		
+		<h2>Send back: </h2>
+		<pre id="return"></pre>
+
+	<script type="text/javascript">
+
+		// We can easily get the arguments that were
+		// used when opening the dialog
+		var args = dialogr.getArgs();
+
+
+		// In this callback method you can set the dialog result
+		// - if a button with "updateFields" was pressed - field values will be set automatically
+		dialogr.updateDialogResult(function() {
+			return {
+				boundArgument : document.getElementById('updateBoundValue').value,
+				boundCheckbox : false,
+				boundList : 'Bur'
+			};
+		});
+
+		document.getElementById('updateBoundValue').value = args.boundArgument;
+		document.getElementById('arguments').innerText = JSON.stringify(dialogr.getArgs());
+	</script>
+
+</body>
+</html>
