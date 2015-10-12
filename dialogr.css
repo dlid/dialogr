@@ -33,8 +33,12 @@ div#dialogr-content {
 	padding: 8px;
 	min-width: 80px;	
 	background-color: #27ae60  ;
-	color: #fff;
+	color: #fefefe;
 }
+#dialogr-footer button:hover  {
+	background-color: #229955 !important;
+	color:#fff !important;
+} 
 #dialogr-footer a {
 	margin-left: 10px;
 	padding-left: 10px;

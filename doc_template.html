@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.css' rel='stylesheet' type='text/css'>
+<link href='http://jmblog.github.io/color-themes-for-google-code-prettify/css/themes/tomorrow.css' rel='stylesheet' type='text/css'>
+
+<style>
+	body {
+	font-family: 'Source Sans Pro', sans-serif;
+	}
+	#menu {
+		position: absolute;
+		left: 0; top: 0;
+		background-color: #f5f5f5  ;
+		width: 250px;
+		font-size: 14px;
+		min-height: 100%;
+	}
+	#content {
+		margin-left: 300px;
+	}
+
+	.menu, .menu ul, .menu li {
+		margin:0;
+		padding:0;
+		list-style-type: none
+	}
+	#menu {paddinxg-top: 42px;}
+	.menu a {
+		color: #555	;
+		text-decoration: none;
+		display:block;
+		padding-left: 20px;
+		line-height: 1.8em;
+	
+
+	}
+
+	.menu > li {
+		
+		
+	}
+	.menu > li > a:hover {
+		background-color: #d5d5d5;
+	}
+	.menu > li > ul {
+		background-color: #e3e3e3  ;
+		color: #000;
+		border: solid 1px #c9c9c9;
+		border-left: none;
+	}
+	.menu > li > ul a {
+		color: #444;
+		padding-left: 30px;
+	}
+.menu > li > ul a:hover {
+	background-color:#d5d5d5;
+}
+
+.menu > li > ul > li.selected a {
+	background-color:#c9c9c9;
+	color: #000;
+	font-weight: bold;
+
+}
+
+	.menu > li[data-expanded] > a {
+		background-color: #fff;
+		color: #333;
+		font-weight: bold;
+	}
+#content {
+	color:rgb(76, 85, 90);;
+	
+}
+#content p {
+	font-size: 16px;
+}
+
+#content a {
+	color: darkorange;
+}
+
+.download {
+	margin-bottom: 12px ! important;
+	marginx-top: 12px ! important;
+	text-alxign: center;
+	text-transxform: uppercase;;
+
+}
+.prettyprint {padding:12px 12px !important;border:none ! important;
+background-color:#eee; margin-left:-12px;}
+
+.example {
+	border: 1px solid #eee;
+	padding:24px 12px !important;margin-left:-12px; 
+}
+
+.example + .prettyprint {
+	margin-top: 0;
+}
+
+.download a { color:#000; border-left: 4px solid #229955;   padding-left: 16px;
+backgxround-color: #27ae60;   colxor: #fff;paddixng-right: 10px; } .download
+a:hover {   backgxround-color: #229955 !important; }
+
+</style>
+</head>
+<body>
+<!--
+
+li[data-has-children] a {
+		border-right: 1px solid #d3d3d3;
+	margin-right: 28px;
+
+}
+
+li[data-has-children]:after  {
+	display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 48px;
+    height: 49px;
+    background: url(/gui/i/plus-orange-25x25.svg) 50% 50% no-repeat;
+    content: "x";
+
+
+}
+-->
+
+	<div id="menu">		
+		<div style="text-align:center">
+	<img src="http://valjs.io/img/valjsfront.png" width="56" />
+		<!--<img src="http://static.test.dlid.se/0_4/img/favicons/favicon-96x96.png" width="96" height="96" />-->
+
+		</div>
+		
+	<ul class="menu">
+		<li><a href="#">ValJS Start</a></li>
+		<li class="download" style="margin-bottom:0 !important;"><a href="#">Download (V1.2)</a></li>
+		<li class="download" style="margin-top:0;margin-bottom:0 !important;"><a href="#" style="border-color: #000;">Github</a></li>
+		<li class="download" style="margin-top:0;"><a href="#" style="border-color: #47639e  ;">Contact</a></li>
+		<li data-has-children="" data-xexpanded="true"><a href="#">About</a><!--
+			<ul>
+				<li><a href="#">What is ValJS?</a>
+				<li><a href="#">Introduction</a>
+				<li class="selected"><a href="#">Changelog</a>
+				<li><a href="#">Requirements</a>
+			</ul>-->
+		</li>
+		<li><a href="#">Getting started</a></li>
+		<li data-expanded="true"><a href="#">Validation rules</a>
+			<ul>
+			<li><a href="#">Confirm rule</a></li>
+			<li><a href="#">Date rule</a></li>
+			<li><a href="#">Datetime</a></li>
+			<li><a href="#">E-mail rule</a></li>
+			<li><a href="#">Filemax rule</a></li>
+			<li><a href="#">Filemin rule</a></li>
+			<li><a href="#">Listmax rule</a></li>
+			<li><a href="#">Listmin rule</a></li>
+			</ul>
+		</li>
+		<li><a href="#">Methods</a></li>
+		<li><a href="#">Events</a></li>
+		<li><a href="#">Configuration</a></li>
+		<li><a href="#">Extending ValJS</a></li>
+		</ul>
+
+	</div>
+	<div id="content">
+	<!--	<a href="#">ValJS</a> &gt; Validation rules
+		<hr />-->
+		<h1>Validation rules</h1>
+		<p>ValJS is all about validation rules - they are the core engine of how ValJS works.</p>
+
+		<p>ValJS comes with a set of built in rules, but you also have the ability to
+		<a href="#">create your own rules</a>.</p>
+		
+
+		<div class="example">
+			<form>
+				<input id="x" placeholder="mhm" />
+				<button>Save</button>
+			</form>
+		</div>
+		<pre class="prettyprint">for (var i=0; i &lt; 10; i++) {
+ console.warn("meh");
+}</pre>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/run_prettify.js"></script>
+
+	</div>
