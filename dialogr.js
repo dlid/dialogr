@@ -41,14 +41,20 @@
     }
 
     function makeButton(options, args) {
-        var elm, cfg = args.config, attr = { type : 'button', id : options.idPrefix + "btn-" + idFromString(args.key)}, text;
+        var elm, cfg = args.config, tagName = "button", attr = { type : 'button', id : options.idPrefix + "btn-" + idFromString(args.key)}, text;
 
         if (cfg) {
-            text = args.config.text ? cfg.text : "";
+            text = cfg.text ? cfg.text : "";
+            if (cfg.isLink === true) {
+                tagName = "a";
+                delete attr.type;
+                attr.href = "javascript:void(0)";
+            }
         }
+        console.warn(cfg);
         if(!text) text = args.key;
 
-        elm = createElement('button', attr);
+        elm = createElement(tagName, attr);
         elm.innerText = text;
         if (cfg['class']) addElementClass(elm, cfg['class']);
         if (cfg.close) addElementClass(elm, "close");
@@ -374,7 +380,8 @@
                     options.buttons[keys[i]] = { 
                         "text" : keys[i],
                         "close" : true,
-                        "click" : onButtonClick
+                        "click" : onButtonClick,
+                        "isLink" : true // Make this a A instead of a button
                     };
                 }
             }

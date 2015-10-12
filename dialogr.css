@@ -19,20 +19,28 @@ div#dialogr-content {
 	
 }
 #dialogr-footer {
-	color: darkslategray; 
+	color: rgba(62,62,62); 
 	background-color: #eee;
 	border-top: 2px solid #ccc;
-	padding: 6px;
+	padding: 12px;
 	box-sizing: border-box;
-	text-align: right
 }
 
 #dialogr-footer button {
 	margin-right: 10px;
 	border: 1px solid #ccc;
 	font-size: 0.9em;
-	padding: 4px 8px;
+	padding: 8px;
+	min-width: 80px;	
+	background-color: #27ae60  ;
+	color: #fff;
 }
+#dialogr-footer a {
+	margin-left: 10px;
+	padding-left: 10px;
+	border-left: 1px solid #aaa;
+}
+
 #dialogr-footer button.save {
 	font-weight: bold;
 }
