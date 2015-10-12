@@ -12,7 +12,6 @@
 		dialogr.open({
 			width : 600, height : 450,
 			title : "Bound fields",
-
 			buttons : {
 				"OK" :  {
 					close : true,
@@ -21,7 +20,7 @@
 				"Cancel" : false // And this will just close the dialog
 			},
 			args : {"normal argument":"and its value"},
-			
+
 			fieldArgs : {
 				boundArgument : '#tbxName'
 			},
@@ -35,18 +34,9 @@
 
 	function demoDialog() {
 		dialogr.open({
-			buttons : {
-				'Spara' : {  
-					"class" : 'save',
-					close : true,
-					updateFields : true // fieldArgs will automatically be updated
-				},
-				'Avbryt' : false
-			},
 			url : 'frame_content.html',
-			title : "The cool one",
-			width : "800px",
-			height : "400px",
+			width : "700px",
+			height : "300px",
 			args : {
 				"arguments" : "can easily be sent to an iframe "
 			}
@@ -58,11 +48,16 @@
 	<style type="text/css">
 	body {
 		background-color: whitesmoke;margin:0;padding:0;
+		font-family: helvetica,sans-serif;
 	}
-		#wrapper, .hero h1 {
-			max-width: 1024px;
+		.wrapper, .hero h1, .header h2 {
+			max-width: 800px;
 			margin: 0 auto;
 
+		}
+		.header {
+			background-color: #eaeaea;
+			padding: 24px;
 		}
 		.hero {
 			font-family: arial;
@@ -74,19 +69,66 @@
 		.hero h1 span {
 			color:#47639e  ;
 		}
+		h2 {
+
+		}
+		p {
+			font-size: 1.1em;
+		}
 	</style>
 <body>
 
-		<div class="hero">
-			<h1>Dialog<span>r</span></h1>
-		</div>
-	<div id="wrapper">
+	<div class="hero">
+		<h1>Dialog<span>r</span></h1>
+	</div>
+	<div class="header">
+		<h2>Introduction</h2>
+	</div>
+	<div class="wrapper">
+	<p>Dialogr is a scaled down <strong>editors dialog</strong>.</p>
+	<p><strong>As an</strong> editor<br /><strong>I wanted</strong> to open a dialog for a more advanced way to manage tags for a page<br /><strong>so that</strong> I have a clean and stylish page and also advanced tag management abilities - that's why Dialogr was created.</p>
+	<hr />
+	<p>As a developer I sometimes need to edit advanced data in a hidden field.
+	The easiest way is sometimes to open an external page with a more advanced editor in a dialog.
+	Dialogr is my attempt to create a small utility library to let me do just this.</p>
+	<ol>
+		<li>Easy to pass parameters to the dialog frame
+			<ol>
+				<li>Bind form elements automatically</li>
+			</ol>
+		</li>
+		<li>Easy to return values to the opening page
+			<ol>
+				<li>Update form element values automatically</li>
+			</ol>
+		</li>
+		<li>Responsive
+		<ol>
+			<li>You can define a dialog size</li>
+			<li>Dialogs will become fulls screen when window is smaller</li>
+		</ol></li>
+		<li>One dialog open at a time</li>
+	</ol>
 
+	<pre>&lt;script&gt;
+dialogr.open({
+ url : 'frame_content.html',
+ width : "700px", height : "300px",
+ args : {
+  "arguments" : "can easily be sent to an iframe "
+ }
+});
+&lt;/script&gt;</pre>
 	<p>
-		<a href="javascript:demoDialog();">test</a>
+		<a href="javascript:demoDialog();">Launch example</a>
 	</p>
+			</div>
+	<div class="header">
+		<h2>Bound fields</h2>
+	</div>
+	<div class="wrapper">
+
 	
-	<h2>Bound fields</h2>
 	<p>You can automatically connect fields as arguments using fieldArgs.</p>
 	<pre>dialogr.open({
  fieldArgs : {
@@ -98,70 +140,6 @@
 		
 	</p>
 
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quo, corrupti! Fugit iusto a velit, quaerat excepturi. Quod iusto voluptates vel eaque cupiditate aperiam, cum consectetur explicabo commodi excepturi id? Tempore.</p>
 </div>
 </body>
 </html>
