@@ -2,6 +2,8 @@
 <html>
 	<head>
 	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
 	</head>
 	<link rel="stylesheet" href="dialogr.css"></html>
 	<script src="dialogr.js"></script>
@@ -28,6 +30,58 @@
 
 			"pong" : function() {
 				dialogr.ping()
+			}
+		});
+	}
+
+	var name = "";
+
+	function newDemo() {
+
+		dialogr.open('frame_content.html', {
+			//buttons : ["hej", "ost", "lakrits"]
+			width : '500px',
+			height : 90,
+			minWidth : 100,
+			param : {
+				name : name
+			},
+			fields : 
+			{
+				"fieldone" : document.getElementById('somefield')
+			},
+			buttons : null
+		})
+
+		// You can send custom events from the dialog and handle them here
+		.on('update_name', function(newName) {
+
+			var deferred = dialogr.deferred();
+
+			//setTimeout(function() {
+				deferred.resolve(newName);
+				name = newName;
+				document.getElementById('name').innerText = newName
+		//	}, 1000);
+
+			return deferred.promise();
+		});
+
+	}
+
+	function newDemo2() {
+
+		dialogr.open('frame2_content.html', {
+			//buttons : ["hej", "ost", "lakrits"]
+			className : 'dialogr2',
+			width : '600px',
+			height : '480px',
+			maxWidth : 400,
+			title : "Blog Post Tags",
+			buttons : {
+				"save" : { text : "Save" },
+				"discard" : {text : "Cancel"},
+				"apply" : { text : "Apply", disabled : true }
 			}
 		});
 	}
@@ -84,6 +138,14 @@
 	<div class="header">
 		<h2>Introduction</h2>
 	</div>
+
+	<div class="wrapper">
+		<ol>
+			<li><a href="javascript:newDemo()">Simple form dialog</a> to set a variable value (<span id="name"></span>) </li>
+			<li><a href="javascript:newDemo2()">Dialog with buttons</a> </li>
+		</ol>
+	</div>
+
 	<div class="wrapper">
 	<p>Dialogr is a scaled down <strong>editors dialog</strong>.</p>
 	<p><strong>As an</strong> editor<br /><strong>I wanted</strong> to open a dialog for a more advanced way to manage tags for a page<br /><strong>so that</strong> I have a clean and stylish page and also advanced tag management abilities - that's why Dialogr was created.</p>

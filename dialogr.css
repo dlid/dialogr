@@ -1,4 +1,111 @@
-#dialogr-wrapper {
+.dialogr {
+	background-color: #eee;
+	border:1px solid #ccc;
+}
+.dialogr__content {
+	border: none;
+	background-color: #fff;
+	padding: 10px 10px 0 10px;
+}
+
+.dialogr__footer {
+	padding: 10px; 
+	background-color: ;
+	box-sizing: border-box;
+}
+
+.dialogr__footer button {
+	outline: none;
+	border: 1px solid #ccc;
+	padding:  6px;
+	margin-right: 2px;
+}
+
+.dialogr__footer button:first-child,
+.dialogr2__footer button:first-child {
+	border-color: steelblue;
+}
+
+.dialogr2 {
+	background-color: #f0f0f0;
+	-webkit-box-shadow: 7px 10px 38px 0px rgba(0,0,0,0.75);
+-moz-box-shadow: 7px 10px 38px 0px rgba(0,0,0,0.75);
+box-shadow: 7px 10px 38px 0px rgba(0,0,0,0.75);
+}
+
+.dialogr2__content {
+	background-color: #fff;
+	border: 1px solid #e3e3e3;
+	margin: 10px 10px 0;
+}
+
+.dialogr2__footer {
+	padding: 10px;
+	text-align:right;
+}
+.dialogr2__header {
+	background-color: #fff;
+}
+.dialogr2__header a {
+	background-color: #fff;
+	float:right;
+	color: #000;
+	font-family: 'Segoe UI', verdana,geneva,sans-serif;
+	padding:1px 0 5px 0;
+	width: 30px;
+	display: inline-block;
+	text-align: center;
+	text-decoration: none;
+
+}
+.dialogr2__header a:hover {
+	background-color: maroon;
+	color: #fff;
+}
+.dialogr2__header h1 {
+	margin: 0;
+	padding: 6px 16px 6px 16px;
+	font-size: 13px;
+	font-weight: normal;
+
+}
+
+.dialogr2__footer button {
+	background-color: #e0e0e0;
+	border:1px solid #ababab;
+	margin-right: 10px;
+	padding:4px 8px;
+	min-width: 80px;
+
+}
+
+/*
+
+.dialogr {
+	border: 2px solid #aaa;
+	box-sizing: border-box;
+background-color: #eee;
+}
+
+.dialogr__content {
+	border: none;
+	background-color: #fff;
+	margin:10px 10px 0 10px;
+}
+
+.dialogr__footer {
+	padding: 10px; 
+	box-sizing: border-box;
+}
+.dialogr__footer button {
+	outline: none;
+	border: 1px solid #ccc;
+	padding:12px;
+	margin-right: 8px;
+}
+*/
+
+/*#dialogr-wrapper {
 	background-color: #fff;
 	border: 2px solid rgb(62, 62, 62); ;
 }
@@ -52,3 +159,4 @@ div#dialogr-content {
 	background-color: #eee;
 }
 #dialogr-header h1 {font-size: 1.1em;margin:0;padding:6px;}
+*/

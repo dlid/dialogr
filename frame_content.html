@@ -1,23 +1,74 @@
 <!DOCTYPE html>
 <html>
 	<head>
+	<style>	
+		body,html {overflow: none;}
+	</style>
 	</head>
 	<script src="dialogr.js"></script>
-<body>
-	
-	<h1>This is an iFrame</h1>
 
-	<p>dialogr is included in this frame as well. The Dialogr script in this frame will know that it's inside a dialog.</p>
+	<script>
 
-	<h2>Dialog arguments:</h2>
-	<pre id="arguments"></pre>
+	var dlg;
+
+		// Call the dialogr ready function to indicate that the dialog
+		// is loaded, and to get access to parameters and callback functions
+		dialogr.ready().done(function(dialog) {
+			dlg = dialog;
+			//dlg.buttons.enable();
+
+			console.warn(dialog);
+
+			if (dlg.param.name) 
+				document.getElementById('name').value = dlg.param.name;
+
+		document.getElementById('name').onkeydown = function(e) {
+			if (e.keyCode == 13) {
+				if (document.getElementById('name').value.length > 0) {
+					okClick();
+				}
+			} else if (e.keyCode == 27) {
+				dlg.close();
+			}
+		}
 
 
-	<script type="text/javascript">
-	// We can easily get the arguments that were used when opening dialog using dialogr.getArgs()
-	var args = dialogr.getArgs();
-	document.getElementById('arguments').innerHTML = JSON.stringify(args);
+			// Bind button events
+			dlg
+			.on('button_ok', okClick)
+			.on('button_cancel', cancelClick);
+
+		});
+
+
+		//Clicking OK will resolve and close the dialog
+		function okClick() {
+
+			dlg.block();
+			dlg.invoke('update_name', document.getElementById('name').value).then(function(e) {
+				console.warn("name was updated to", e);
+				dlg.resolve();
+			}, function(ex) {
+				console.error("a", ex);
+				dlg.unblock();
+			});;
+
+			//dialog.resolve(document.getElementById('name').value);
+		}
+
+		// Clicking cancel will reject and close the dialog
+		function cancelClick() {
+			dlg.reject();
+		}
+
+
+
 	</script>
+<body>
+	<label style="font-weight: bold;">Enter your name</label><br />
+	<input type="text" id="name" />
+	<button onclick="javascript:okClick();">ok</button>
+	<button onclick="jbuttonvascript:cancelClick();">Cancel</button>
 
 </body>
 </html>

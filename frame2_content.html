@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<style>	
+		body,html {overflow: none; font-family: 'Segoe UI',arial,verdana,sans-serif;}
+	</style>
+	</head>
+	<script src="dialogr.js"></script>
+
+	<script>
+		var dlg;
+
+		// Call the dialogr ready function to indicate that the dialog
+		// is loaded, and to get access to parameters and callback functions
+		dialogr.ready().done(function(dialog) {
+			dlg = dialog;
+
+			document.getElementById('name').onkeyup = function() {
+				dlg.trigger('an_update', document.getElementById('name').value);
+			}
+			dlg
+			.on('button_discard', function() {
+				dlg.reject();
+			});
+		});
+
+		function child() {
+			dialogr.open("frame_content.html", {
+				buttons : null
+			})
+			.then(function() {
+				alert("rejected again");
+			},function() {
+				alert("mmh");
+			}).on('update_name', function(dataFromAnotherWorld) {
+				var deferred = dialogr.deferred();
+					console.info("THIS!", dataFromAnotherWorld);
+					document.getElementById('name').value = dataFromAnotherWorld;
+					deferred.resolve();
+					return deferred.promise();
+			});
+		}
+
+
+	</script>
+<body>
+	<table width="100%">
+		<colgroup>
+			<col width="90px">
+		</colgroup>
+		<tbody>
+			<tr>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">Name</th>
+				<td><input id="name" style="display: block; width: 96%;"/></td>
+			</tr>
+			<tr>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">Advanced</th>
+				<td><a href="javascript:child()">advanced</a></td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
