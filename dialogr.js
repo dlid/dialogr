@@ -1,9 +1,14 @@
 /*jshint */
 /*global window, document */
-
+/**
+ * @license Dialogr v0.1.0
+ * (c) 2016 dlid.se. http://docs.dlid.se/dialogr
+ * License: MIT
+ */
 (function(win) {
 
     var dialogrDefaults = {
+        zIndex : 1500,
         url : null,
         className : 'dialogr',
         width : '90%',
@@ -31,7 +36,7 @@
     dialogOptions = null,
     dialogDeferred = null,
     winloadDeferred,
-    dialogId = null;
+    dialogId = null,
     self = this;
 
     var uniqnames = ["Bames", "Lilleskutt", "Skalman", "Vargen", "Teddy", "Jansson", "Husmusen"]
@@ -45,7 +50,7 @@
 
     function EventingManager(eventingDialogId, targetWindow, isDialogContext, openingDialogId) {
 
-        console.warn("NEW EventingManager", arguments, window.location.href.toString());
+        //console.warn("NEW EventingManager", arguments, window.location.href.toString());
 
         var _targetWindow = targetWindow || null,
             _eventingTargetWindow = null,
@@ -53,7 +58,13 @@
             _messageIdPrefix = uniqid('m'),
             _eventHandlers = {},
             _boundDialogId = null,
-            _direction = "";
+            _direction = "",
+            _weAre = null,
+            _namedTargets = {
+                'mother' : targetWindow || null,
+                'father' : targetWindow || null,
+                'child' : null
+            };
 
         function reset() {
             _messageIdPrefix = uniqid('m');
@@ -74,26 +85,43 @@
         attachEventHandler(window, 'message', messageHandler);
 
         function send(name, data, options, targetWindow, asDialogId) {
-
+            var customTargetWindow = typeof targetWindow !== "undefined" && targetWindow != null; 
             options = extend({
                 await : null,
                 messageId : null
             }, options || {});
 
-            if (!targetWindow) {
+            /*if (!targetWindow) {
                 if (_targetWindow) {
                     targetWindow = _targetWindow;
                 }
-            }
-
-            if(asDialogId) {
-                console.warn("SEND AS", asDialogId, name, data);
-            }
+            } else if (typeof targetWindow == 'string' && targetWindow == 'eventingTarget') {
+                eventingTarget = win.parent;
+            }*/
 
             if (!options.messageId) {
                 _messageId++;
                 options.messageId =  _messageIdPrefix + "_" + _messageId;
             }
+
+            var sendToTargetWindow = 'mother',
+                messagesToMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock', 'dialogr.open']; 
+            if (customTargetWindow) {
+                sendToTargetWindow = "custom target window";
+            } else if (_weAre !== null) {
+                if (_weAre.child) {
+                    if (messagesToMother.indexOf(name) === -1) {
+                        sendToTargetWindow = "father";
+                    }
+                } else if (!_weAre.mother && _weAre.father && messagesToMother.indexOf(name) !== -1) {
+                    sendToTargetWindow = "mother";
+                } else if (_weAre.mother || _weAre.father) {
+                    sendToTargetWindow = "dialog";
+                }
+            }
+
+           // console.warn("{"+weAreToString()+"} SEND '"+name+"' to", sendToTargetWindow);
+
 
              var message = {
                 direction : _direction,
@@ -102,29 +130,31 @@
                 messageData : data,
                 messageId : options.messageId,
                 dialogrId : asDialogId ? asDialogId : _boundDialogId,
-                await : options.await
+                await : options.await,
+                fromLocation : win.location.href
             };
-            console.warn("[x]", {
-                isDialogContext : isDialogContext,
-                _boundDialogId : _boundDialogId
-            });
-
-            var targetName = (!isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : 'ROOT');
+        
+            /*var targetName = (!isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : 'ROOT');
             
              if (_eventingTargetWindow) {
-                if (message.messageType.indexOf('dialogr.') === -1 || 
-                    message.messageType === "dialogr.reject") {
+                var toMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock']; 
+                if ( toMother.indexOf(message.messageType) === -1 ) {
                     targetWindow = _eventingTargetWindow;
                     targetName = "father";
-
+                } else {
+                    targetName = "mother";
                 }
+            }*/
+
+            //console.info('[' + weAreToString() + ']=>[' + sendToTargetWindow + "]", name, message, window.location.href);
+
+            var resolvedTargetWindow = customTargetWindow ? targetWindow : _namedTargets[sendToTargetWindow];
+            if (typeof resolvedTargetWindow === "undefined" || resolvedTargetWindow == null) {
+                console.error("Target window was null or undefined", sendToTargetWindow);
+                return;
             }
 
-            console.info('[' + (isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : 'ROOT' + (_boundDialogId ? ":" + _boundDialogId : ':UNBOUND')) + ']=>[' + targetName + "]", name, message, window.location.href);
-
-           
-
-            targetWindow.postMessage(JSON.stringify(message), '*');
+            resolvedTargetWindow.postMessage(JSON.stringify(message), '*');
 
         }
 
@@ -136,7 +166,6 @@
 
         function messageHandler(e) {
             if (e.source == window) {
-                console.warn("same source")
                 return;
             }
            
@@ -147,34 +176,23 @@
 
                     if (!_boundDialogId) {
                         if (o.messageType.indexOf('dialogr.find-opener') === -1) {
-                            console.warn("["+_boundDialogId+"]."+eventingDialogId+" Ignoring message (no dialog id is set)", o, window.location);
                             return;
                         }
                     } else if (_boundDialogId !== o.dialogrId) {
-                       /*  if (isDialogContext && _dialogs.length > 0) {
-                            console.warn("I en dialog, finns", o.dialogrId, "bland barnen? ->", _dialogs);
-                            for (var i=0; i < _dialogs.length; i++) {
-                                if (_dialogs[i].id == o.dialogrId) {
-                                    console.warn("hittade", _dialogs[i]);
-                                    return;
-                                }
-                            }
-                        }*/
-
-                        console.info("[" + (isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : (openingDialogId ? openingDialogId : 'ROOT') + (_boundDialogId ? ":" + _boundDialogId : ':UNBOUND')) + "] ignoring....", o.messageType, o, window.location);
+//                        console.info("[" + weAreToString() + "] ignoring....", o.messageType, o, window.location);
                         return;
                     }
 
-                    if (o.messageType == "dialogr.i-am-your-father") {
+                    /*if (o.messageType == "dialogr.i-am-your-father") {
                         setEventingTargetWindow(e.source);
                         document.getElementsByTagName('body')[0].style.backgroundColor = 'orange';
                         console.info("Ok. Send non-dialogr-stuff here: ", openingDialogId, e);
                         return;
-                    }
+                    }*/
 
-                    console.info("[" + (isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') :  (openingDialogId ? openingDialogId : 'ROOT') + (_boundDialogId ? ":" + _boundDialogId : ':UNBOUND')) + "].receive", o.messageType, o);
+                    //console.info("["+weAreToString()+"].receive", o.messageType, o, _eventHandlers, window.location);
 
-                    if (isUndefined(_eventHandlers[o.messageType])) {
+                    /*if (isUndefined(_eventHandlers[o.messageType])) {
                         if (openingDialogId && !_dialogContext && o.messageType.indexOf('dialogr.') !== 0) {
                             console.info("Meddelande från " + o.dialogrId +  " - skicka vidare till dialogen som öppnade den: ", openingDialogId, o.await);
                             if (o.await) {
@@ -188,11 +206,11 @@
                             }
                             return;
                         }
-                    }
+                    }*/
 
                    
                     if(!isUndefined(_eventHandlers[o.messageType])) {
-                        console.warn("handlers", eventingDialogId, _eventHandlers);
+                       // console.warn("handlers", eventingDialogId, _eventHandlers);
                         if (!o.await) {
                             for (var i = 0; i < _eventHandlers[o.messageType].length; i++) {
                                 var fnRet = _eventHandlers[o.messageType][i](o.messageData, o, e);
@@ -285,8 +303,8 @@
             _messageId++;
             options.messageId =  name + "://await" + _messageIdPrefix + _messageId;
 
-            on(options.messageId + "_response", function(r) {
-                
+            on(options.messageId + "_response", function(r,e,f) {
+                //console.warn("onresponse", r,e,f);
                 var responseData = [];
                 for (var i=0; i < r.response.length; i++) {
                     if (typeof r.response[i] === "string") {
@@ -295,10 +313,16 @@
                         responseData.push(r.response[i].data );
                     }
                 }
+
+                var ddd = {
+                    messageEvent : f,
+                    message : e
+                };
+
                 if (r.type === "fail") {
-                    d.reject( responseData.length == 1 ? responseData[0] : responseData );
+                    d.rejectWith(ddd, [responseData.length == 1 ? responseData[0] : responseData] );
                 } else {
-                    d.resolve( responseData.length == 1 ? responseData[0] : responseData );
+                    d.resolveWith(ddd, [responseData.length == 1 ? responseData[0] : responseData] );
                 }
             });
             var msg = send(name, data, options, targetWindow, asDialogId);
@@ -306,7 +330,7 @@
         }
 
         function setDialogrId(id) {
-            console.warn("SETDALOGRID", eventingDialogId, id);
+        //    console.warn("SETDALOGRID", eventingDialogId, id);
             _boundDialogId = id;
         }
 
@@ -318,223 +342,46 @@
             _eventingTargetWindow = targetWin;
         }
 
+        function weAreToString() {
+
+            if (!_weAre) return "UNKNOWN";
+            if (_weAre.father && _weAre.mother) 
+                return "fa+mo to " + _weAre.fatherTo;
+
+            if (_weAre.father ) 
+                return "father to " + _weAre.fatherTo;
+
+            if (_weAre.mother ) 
+                return "mother to " + _weAre.motherTo;
+
+            if (_weAre.child ) 
+                return (!_weAre.fatherIdentified ? ' fatherless ' : '') + "child " + _weAre.childId;
+
+            return _weAre.toString();
+        }
+
+        function setNamedTarget(name, namedTargetWindiw) {
+            if (name == "father") _weAre.fatherIdentified = true;
+            _namedTargets[name] = namedTargetWindiw;
+        }
+
         return {
             send : send,
             await : sendAndWait,
             setDialogrId : setDialogrId,
             setTargetWindow : setTargetWindow,
+            setEventingTargetWindow : setEventingTargetWindow,
+            setNamedTarget : setNamedTarget,
             on : on,
             off : off,
             handleMessage : messageHandler,
-            $$eventHandlers : _eventHandlers
+            $$eventHandlers : _eventHandlers,
+            setIdentity : function(val) {
+                _weAre = val;
+            }
         }
 
     }
-
-
-    var eventing = (function() {
-
-        var messageId = 0,
-            messageIdPrefix,
-            eventHandlers;
-
-        function reset() {
-            hashCode(window.location.toString()) + (new Date()).getTime() + "_";
-            eventHandlers = {};
-        }
-
-        function on(eventName, callback) {
-            if (isUndefined(eventHandlers[eventName])) eventHandlers[eventName] = [];
-            eventHandlers[eventName].push(callback);
-        }
-
-        function off(eventName, callback) {
-            console.error("eventing.off not implemented");
-            return this;
-        }
-
-        function isOpener() {
-            return (dialogElement !== null);
-        }
-
-        attachEventHandler(window, 'message', messageHandler);
-
-   
-        function messageHandler(e) {
-            //console.warn("incoming-message", e);
-            return;
-            if (e.source == window) {
-                console.warn("same source")
-                return;
-            }
-           
-            var o;
-            try { o = JSON.parse(e.data); } catch(e) {}
-            if (o) {
-                if (!isUndefined(o.source) && o.source === "dialogr") {
-                    //console.warn("eventing.received("+(isOpener() ? "opener":"dialog")+")", o.messageType, o);
-
-                    if(!isUndefined(eventHandlers[o.messageType])) {
-
-                        if (!o.await) {
-                            for (var i = 0; i < eventHandlers[o.messageType].length; i++) {
-                                var fnRet = eventHandlers[o.messageType][i](o.messageData, o);
-
-                            }
-                        } else {
-
-                            var n = 0,
-                                responses = [],
-                                timer = null,
-                                isSuccess = true;
-
-                            function callbackReady(data) {
-                                n++;
-                                if (data.type === "fail") isSuccess = false;
-
-                                responses.push(data);
-                                if (n === n, eventHandlers[o.messageType].length) {
-                                    clearTimeout(timer);
-                                    send(o.messageId + "_response", {
-                                        type : isSuccess ? "success" : "fail",
-                                        response : responses
-                                    });
-                                }
-                            }
-
-                            timer = setTimeout(function() {
-                                send(o.messageId + "_response", {
-                                    type : "fail",
-                                    response : ["Operation took too long > " + o.await + "ms"]
-                                });
-                            }, o.await);
-
-                            for (var i = 0; i < eventHandlers[o.messageType].length; i++) {
-                                var fnRet = eventHandlers[o.messageType][i](o.messageData, o);
-                                console.warn("fnRet", o);
-                                if (o.await) {
-                                    console.warn("is await");
-                                    if (fnRet && fnRet.done && fnRet.fail && fnRet.promise) {
-                                    console.warn("is romise");
-                                        fnRet.then(function(r) {
-                                            if (!timer) return;
-                                            console.warn("success, yes?");
-                                            callbackReady( {
-                                                index : i,
-                                                type : "success",
-                                                data : r
-                                            });
-                                        },
-                                        function(r) {
-                                            if (!timer) return;
-                                            callbackReady({
-                                                index : i,
-                                                type : "fail",
-                                                data : r
-                                            });
-                                        });
-                                    } else {
-                                        if (!timer) return;
-                                        callbackReady( {
-                                            apa : 3,
-                                            index : i,
-                                            type : "success",
-                                            data : fnRet
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (o.await) {
-                            // No listeners? Let's just return a success without any data
-                            send(o.messageId + "_response", {
-                                type : "fail",
-                                response : ["Nothing listening for '" + o.messageType + "'"]
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        function send(name, data, options) {
-
-            options = extend({
-                await : null,
-                messageId : null
-            }, options || {});
-
-
-            if (!options.messageId) {
-                messageId++;
-                options.messageId =  messageIdPrefix + messageId;
-            }
-            
-            var message = {
-                source : 'dialogr',
-                messageType : name,
-                messageData : data,
-                messageId : options.messageId,
-                dialogId : dialogId,
-                await : options.await
-            };
-
-            if (options.replyTo) {
-
-            }
-
-            if (isOpener()) {
-                 dialogElement__content.contentWindow.postMessage(JSON.stringify(message), '*');
-            } else {
-                win.parent.postMessage(JSON.stringify(message), '*');
-            }
-
-            return message;
-        }
-
-        function sendAndWait(name, data, options) {
-            var d = self.Deferred();
-            options = extend({
-                await : 5000
-            }, options || {});
-
-            // Create the id here so we can start listening for the reply before sending the message
-            messageId++;
-            options.messageId =  "await_" + name + "_" + messageIdPrefix + messageId;
-
-            on(options.messageId + "_response", function(r) {
-                console.warn("response", JSON.stringify(r));
-                var responseData = [];
-                for (var i=0; i < r.response.length; i++) {
-                    if (r.response[i].data ) {
-                        responseData.push(r.response[i].data );
-                    } else if (typeof r.response[i] === "string") {
-                        responseData.push(r.response[i]);
-                    }
-                }
-
-                console.warn("response", JSON.stringify(responseData));
-
-                if (r.type === "fail") {
-                    d.reject( responseData.length == 1 ? responseData[0] : responseData );
-                } else {
-                    d.resolve( responseData.length == 1 ? responseData[0] : responseData );
-                }
-            });
-            var msg = send(name, data, options);
-            return d.promise();
-        }
-
-        reset();
-        return {
-            'on' : on,
-            'off' : off,
-            'send' : send,
-            'await' : sendAndWait,
-            'reset' : reset
-        }
-    }());
 
     attachEventHandler(win, 'keydown', function(e) {
         if (e.keyCode === 27 && dialogElement != null) {
@@ -542,37 +389,12 @@
         }
     });
 
-
-    /*function messageHandler(e) {
-        if (dialogElement__content) {
-            if (e.source == dialogElement__content.contentWindow) {
-                var o;
-                try {o = JSON.parse(e.data)} catch(e){}
-                if (o && o.source && o.source == "dialogr") {
-                    dialogId = o.id;
-
-                    eventing.send('hello', {
-
-                    });
-
-                    dialogElement__content.contentWindow.postMessage(JSON.stringify({
-                        'source' : 'dialogr',
-                        'event' : 'hello',
-                        'param' : dialogOptions.param,
-                        'id' : o.id
-                    }), '*');
-                    dialogElement__loaderOverlay.style.visibility = "hidden";
-                    dialogElement__content.style.visibility = "visible";
-                }
-            }
-        }
-    }*/
-
     function open(optionsOrUrl, options, id, openingDialogId) {
         
-        var dialogInstance;
+        var dialogInstance,
+            openDialogs = _dialogs.slice(0);
         if (_dialogContext) {
-            dialogInstance = new DialogrDialog(optionsOrUrl, options, true);
+            dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, true);
 
             _dialogContext.invoke('dialogr.open', {
                 optionsOrUrl : optionsOrUrl,
@@ -580,174 +402,28 @@
                 newDialogId : dialogInstance.id,
                 openerId : _dialogContextDialogId
             }).then(function(d) {
-                console.info("ok, dialog from dialog was opened", d, "set eventing id to", dialogInstance.id);
-                console.info("aand set eventing target window to", win.location.toString());
+
                 dialogInstance.$$e.setDialogrId(dialogInstance.id);
-                //dialogInstance.$$e.setEventTargetWindow(win);
+                dialogInstance.$$e.setTargetWindow(win);
+                dialogInstance.$$e.setNamedTarget('mother', this.messageEvent.source);
             });
             return dialogInstance;
         } else {
-            dialogInstance = new DialogrDialog(optionsOrUrl, options, id, openingDialogId);
-        }
+            if (openDialogs.length > 0) {
+                var maxZindex = 0;
+                for (var i=0; i < openDialogs.length; i++){
+                    var zi = parseInteger(getStyle(openDialogs[i].$$el.dialog, 'z-index'));
+                    if (zi > maxZindex) maxZindex = zi;
+                }
+                options.zIndex = maxZindex + 10;
+            }
 
-       // dialogDeferred = self.Deferred();
+            dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, id, openingDialogId);
+            
+        }
 
         return dialogInstance;
 
-       // eventing.reset(); // Reset
-
-
-        /*eventing.off('ready').on('ready', function(e) {
-            var deferred = dialogr.deferred();
-            
-            /*dialogElement__content.contentWindow.postMessage(JSON.stringify({
-                'source' : 'dialogr',
-                'event' : 'hello',
-                'param' : dialogOptions.param,
-                'id' : o.id
-            }), '*');* /
-            dialogElement__loaderOverlay.style.visibility = "hidden";
-            dialogElement__content.style.visibility = "visible";
-
-            deferred.resolve({
-                'param' : dialogOptions.param
-            });
-
-            return deferred.promise();
-        });
-
-        eventing.off('dialogr.block').on('dialogr.block', function() {
-             dialogElement__loaderOverlay.style.visibility = "visible";
-        });
-
-        eventing.off('dialogr.unblock').on('dialogr.unblock', function() {
-             dialogElement__loaderOverlay.style.visibility = "hidden";
-        });
-
-        eventing.off('dialogr.resolve').on('dialogr.resolve', function(d) {
-             dialogDeferred.resolve(d);
-             close();
-        });
-
-       eventing.off('dialogr.reject').on('dialogr.reject', function(d) {
-             dialogDeferred.reject(d);
-             close();
-        });
-
-        eventing.off('dialogr.close').on('dialogr.close', function(d) {
-             close();
-        });*/
-
-      // attachEventHandler(window, 'message', messageHandler);
-    // removeEventHandler(window, 'message', messageHandler);
-
-
-//        window.addEventListener("message", messageHandler, true);
-       
-
-        console.warn( "body original overflow-y", getStyle(document.getElementsByTagName('body')[0], 'overflow-y') );
-
-        document.getElementsByTagName('body')[0].style.overflowY = 'hidden';
-
-        dialogElement = document.createElement('div');
-        dialogElement.setAttribute("class", dialogOptions.className);
-        dialogElement.style.position = 'fixed';
-        dialogElement.style.zIndex = '150';
-        document.body.appendChild(dialogElement);
-
-        dialogElement__overlay = document.createElement('iframe');
-        dialogElement__overlay.setAttribute("class", dialogOptions.className + "__overlay");
-        dialogElement__overlay.style.position = 'fixed';
-        dialogElement__overlay.style.width = '100%';
-        dialogElement__overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        dialogElement__overlay.style.height = '100%';
-        dialogElement__overlay.style.top = '0';
-        dialogElement__overlay.style.left = '0';
-        dialogElement__overlay.style.zIndex = '100';
-         document.body.appendChild(dialogElement__overlay);
-       // dialogElement__content.style.visibility = "hidden";
-
-        dialogElement__content = document.createElement('iframe');
-        dialogElement__content.setAttribute("class", dialogOptions.className + "__content");
-        dialogElement__content.style.position = 'absolute';
-        dialogElement__content.style.visibility = "hidden";
-
-        dialogElement__loaderOverlay = document.createElement('div');
-        dialogElement__loaderOverlay.setAttribute("class", dialogOptions.className + "__loader-overlay");
-        dialogElement__loaderOverlay.style.position = 'fixed';
-        dialogElement__loaderOverlay.style.border = '1px solid #aaa';
-        dialogElement__loaderOverlay.style.backgroundColor = 'rgba(255,255,255,0.8)';
-        dialogElement__loaderOverlay.style.cursor = 'wait';
-
-        dialogElement__loader = document.createElement('div');
-        dialogElement__loader.setAttribute("class", dialogOptions.className + "__overlay");
-        dialogElement__loader.style.position = 'absolute';
-        dialogElement__loader.style.backgroundColor = '#fff';
-        dialogElement__loaderOverlay.style.visibility = 'visible';
-
-        dialogElement__loader.innerHTML = "Loading...";        
-
-        dialogElement__footer = document.createElement('div');
-        dialogElement__footer.setAttribute("class", dialogOptions.className + "__footer");
-        dialogElement__footer.style.position = 'absolute';
-
-        dialogElement__header = document.createElement('div');
-        dialogElement__header.setAttribute("class", dialogOptions.className + "__header");
-        dialogElement__header.style.overflow = 'hidden';
-
-
-        var buttonCount = 0;
-
-        if(typeof dialogOptions.buttons !== "undefined") {
-            if (dialogOptions.buttons.constructor === Array) {
-                for (var i=0; i < dialogOptions.buttons.length; i++) {
-                    dialogElement__footer.innerHTML += "<button  onclick='javascript:dialogr.trigger(\"button_" + key + "\")' class='dialogr__button'>" + dialogOptions.buttons[i] + "</button>";
-                    buttonCount++;
-                }
-            } else if (typeof dialogOptions.buttons === "object") {
-                for (var key in dialogOptions.buttons) {
-                    if (dialogOptions.buttons.hasOwnProperty(key)) {
-                        dialogElement__footer.innerHTML += "<button onclick='javascript:dialogr.trigger(\"button_" + key + "\")' class='dialogr__button' >" + dialogOptions.buttons[key].text + "</button>";
-                    buttonCount++;
-                    }
-                }
-            }
-        }
-
-        if (buttonCount == 0) {
-            dialogElement__footer.style.display = "none";
-        }
-
-        if (!dialogOptions.title) {
-            dialogElement__header.style.display = "none";
-        } else {
-            dialogElement__header.innerHTML = "<a href='javascript:dialogr.close()'>x</a><h1>" + dialogOptions.title + "</h1>";
-        }
-        
-        dialogElement.appendChild(dialogElement__header);
-        dialogElement.appendChild(dialogElement__content);
-        dialogElement.appendChild(dialogElement__footer);
-        dialogElement__loaderOverlay.appendChild(dialogElement__loader);
-        dialogElement.appendChild(dialogElement__loaderOverlay);
-
-
-        setTimeout(onResize, 5);
-
-        attachEventHandler(window, 'resize', onResize);
-        openedDialog = true;
-
-        dialogElement__content.setAttribute('src', dialogOptions.url);
-
-        var promise = dialogDeferred.promise();
-
-        promise.on = function(name, callback) {
-            eventing.on(name, function(e) {
-                return callback(e);
-            });
-            return this;
-        }
-
-        return dialogDeferred.promise();
     }
 
     function isUndefined(obj) {
@@ -778,32 +454,25 @@
     }
 
     function parseInteger(v) {
-        return parseInt(v, 10);
+        var val = parseInt(v, 10);
+        if (isNaN(val)) return 0;
+        return val;
     }
 
     function getOuterSizes(d, styleName) {
-        var p = getStyle(d, styleName),
-                match,
-                ret = {t:0,r:0,b:0,l:0};
-
-//                console.warn( p, styleName );
-            if (match = p.match(/^(\d+)px$/)) {
-                ret = {t : parseInteger(match[1]), l : parseInteger(match[1]), b : parseInteger(match[1]), r : parseInteger(match[1])}
-            } else if (match = p.match(/^(\d+)px (\d+)px$/)) {
-                ret = {t : parseInteger(match[1]), l : parseInteger(match[2]), b : parseInteger(match[1]), r : parseInteger(match[2])}
-            } else if (match = p.match(/^(\d+)px (\d+)px (\d+)px (\d+)px$/)) {
-                ret = {t : parseInteger(match[1]), l : parseInteger(match[4]), b : parseInteger(match[3]), r : parseInteger(match[2])}
-            } else if (match = p.match(/^(\d+)px (\d+)px (\d+)px$/)) {
-                ret = {t : parseInteger(match[1]), l : parseInteger(match[2]), b : parseInteger(match[3]), r : parseInteger(match[2])}
-            }
-            return ret;
+        return {
+            t: parseInteger(getStyle(d, styleName + '-top')),
+            r: parseInteger(getStyle(d, styleName + '-right')),
+            b: parseInteger(getStyle(d, styleName + '-bottom')),
+            l: parseInteger(getStyle(d, styleName + '-left'))
+        };
     }
 
     function getStyle(x,styleProp) {
-        if (x.currentStyle)
-            var y = x.currentStyle[styleProp];
-        else if (window.getComputedStyle)
+        if (window.getComputedStyle)
             var y = document.defaultView.getComputedStyle(x,null).getPropertyValue(styleProp);
+        else if (x.currentStyle)
+            var y = x.currentStyle[styleProp];
         return y;
     }
 
@@ -863,23 +532,53 @@
     //
     function DialogContext(openingWindow, successCallback, failCallback) {
         var _eventing = new EventingManager(null, openingWindow, true),
-            _context = this;   
+            _context = this;  
 
         // Find the opening window.
         _eventing.await('dialogr.find-opener', {
             dialogUrl : window.location.toString()
         }, null, openingWindow).then(function(data) {
+            var weAre = {
+                child : true,
+                motherIdentified : true,
+                fatherIdentified : true,
+                childId : data.dialogrId
+            };
+            _context.param = data.param || {};
             _dialogContextDialogId = data.dialogrId;
             _eventing.setDialogrId(data.dialogrId);
-            successCallback(data);
+            
+            if (data.opener) {
+                weAre.fatherIdentified = false;
+                _eventing.setIdentity(weAre);
+                _eventing.on('dialogr.i-am-your-father', function(data, msg, msgEvent) {
+                    _eventing.off('dialogr.i-am-your-father');
+                    //console.info("OK! We know who our father is!!", data,msg,msgEvent);
+                    _eventing.setNamedTarget('father', msgEvent.source);
+                    _context.unblock();
+                    successCallback(data);
+                });
+                //console.warn("["+data.dialogrId+"] WE ARE CHILD (context) (I know mother - where's father?)", data, window.location.href);
+                var t= win.parent;
+                for (var i=0; i < t.window.frames.length; i++) {
+                    _eventing.send("dialogr.find-father", { "frame" : i, "childId" : data.dialogrId }, null, t.window.frames[i]);
+                }
+            } else {
+                _eventing.setIdentity(weAre);
+               // console.warn("["+data.dialogrId+"] WE ARE CHILD (context) (I know my father+mother)", data, window.location.href);
+                _context.unblock();
+                successCallback(data);
+            }
+            
         }, function(r) {
             failCallback(r);
         });
 
         this.$$e = _eventing;
         this.$$w = openingWindow;
-        this.on = function() {
-            console.info("context.on", arguments);
+        //this.$$el = _elements;
+        this.on = function(name, callback) {
+            _eventing.on(name, callback);
             return _context;
         }
         this.invoke = function(name, data) {
@@ -890,9 +589,15 @@
             return _eventing.send(name, data, null, openingWindow);
         }
 
-        this.close = function() {}
-        this.block = function() {}
-        this.unblock = function() {}
+        this.close = function() {
+            _eventing.send('dialogr.close');
+        }
+        this.block = function() {
+            _eventing.send('dialogr.block');
+        }
+        this.unblock = function() {
+            _eventing.send('dialogr.unblock');
+        }
         this.resolve = function(data) {
             _eventing.send('dialogr.resolve', data);
         }
@@ -925,81 +630,6 @@
 
          return deferred.promise();
 
-return;
-
-        if (win.parent!= win) {
-
-            
-
-            console.warn("Sending ready and waiting for response...");
-            eventing.await('ready', {
-                dialogUrl : window.location.toString(),
-                dialogId : d
-            }).then(function(d) {
-                console.warn("Got ready-response!",d);
-
-                attachEventHandler(window, 'keydown', function(e) {
-                    if (e.keyCode == 27) {
-                        if (e.srcElement.nodeName === "BODY") {
-                            alert("Close");
-                        }
-                    }
-                });
-
-               deferred.resolve({
-                'resolve' : function(data) {
-                    eventing.send('dialogr.resolve', data);
-                },
-                'reject' : function(data) {
-                    eventing.send('dialogr.reject', data);
-                },
-                'param' : d.param ? d.param : null,
-                'block' : function() {
-                    eventing.send('dialogr.block');
-                },
-                'unblock' : function() {eventing.send('dialogr.unblock');},
-                'close' : function() {eventing.send('dialogr.close');},
-                'on' : function(name, callback) {
-                    eventing.on(name, function(e) {
-                        return callback(e);
-                    });
-                    return this;
-                },
-                'trigger' : function(name, data) {
-                   return eventing.send(name, data);
-                },
-                'invoke' : function(name, data) {
-                   return eventing.await(name, data);
-                },
-                'buttons' : (function() {
-                    return {
-                        enable : function() {},
-                        disable : function() {},
-                        onClick : function() {}
-                    }
-                }())
-               });
-
-            }, function(r) {
-                console.warn("ready failed?",r);
-            });
-
-           
-           /* win.parent.postMessage(JSON.stringify({
-                'source' : 'dialogr',
-                'event' : 'ready',
-                'id' : d
-            }), '*');*/
-
-          //  var waitTimeout = setTimeout(function() {
-          //      deferred.reject();
-            //}, 500);
-///
-        } else {
-            deferred.reject();
-        }
-
-       
     }
 
 
@@ -1014,6 +644,7 @@ return;
                 cmargins = getOuterSizes(elm, "margin"),
                 borderBox = getStyle(elm, "box-sizing") === "border-box";
                 visible = getStyle(elm, "display") === "block";
+                
 
             if (!borderBox) {
                 w = parseInteger(getStyle(elm, 'width')) + cpadding.l + cpadding.r + cmargins.l + cmargins.r + cborders.l + cborders.r;
@@ -1093,14 +724,11 @@ return;
         }
     }
 
-    function close() {
-        console.warn("CLOSE ME!!");
-        if (dialogElement) {
-                removeEventHandler(window, 'resize', onResize);
-            dialogElement.parentNode.removeChild(dialogElement);
-            dialogElement__overlay.parentNode.removeChild(dialogElement__overlay);
-            dialogOptions = null;
-            dialogElement = null;
+    function close(dialogId) {
+        for (var i=0; i < _dialogs.length; i++) {
+            if (_dialogs[i].id == dialogId) {
+                return _dialogs[i].close();
+            }
         }
     }
 
@@ -1140,14 +768,17 @@ return;
     var _dialogs = [];
 
     // The actual instance of the dialog
-    function DialogrDialog(optionsOrUrl, options, idFromDialogEvent, openerDialogId) {
+    function DialogrDialog(optionsOrUrl, options, internalOptions, idFromDialogEvent, openerDialogId) {
 
         var _dialogOptions, 
             _elements = {},
             _currentDialog = this;
 
+            var _weAre = null;
+
+       
         if( typeof optionsOrUrl === "string") {
-            if (typeof options === "undefined" || typeof options !== "object") {
+            if (isUndefined(options) || typeof options !== "object") {
                 options = {};
             }
             options.url = optionsOrUrl;
@@ -1168,7 +799,7 @@ return;
 
         if (idFromDialogEvent && idFromDialogEvent !== true) {
             this.id = idFromDialogEvent;
-                    
+
         } else {
             dialogId ++;
             this.id = "d" + uniqid('dlg') +  "_" + dialogId;
@@ -1176,8 +807,35 @@ return;
 
         if (idFromDialogEvent === true) fakeContext = true;    
 
+        // Identify where and who we are? Child? Father? Mother+Father? Mother only?
+        _weAre = { father : false, mother : false, child : false }
+        if (idFromDialogEvent === true) {
+            _weAre.father = true;
+            _weAre.fatherTo = this.id;
+        } else if (!isUndefined(idFromDialogEvent)) {
+            _weAre.mother = true;
+            _weAre.motherTo = this.id;
+        } else {
+            _weAre.mother = true;
+            _weAre.motherTo = this.id;
+            _weAre.father = true;
+            _weAre.fatherTo = this.id;
+        }
+
         var dialogDeferred = self.Deferred(),
             _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
+            _eventing.setIdentity(_weAre);
+            
+        
+         if (_weAre.father) {
+            _eventing.on('dialogr.find-father', function(d, msg, msgEvent) {
+                if (_weAre.fatherTo == d.childId) {
+                    _eventing.setNamedTarget('child', msgEvent.source);
+                    _eventing.send("dialogr.i-am-your-father", { "fatherLocation" : win.location.href }, null, msgEvent.source);
+                }
+            }); 
+        }
+
 
         //
         // Event to hook up the dialog window
@@ -1186,48 +844,63 @@ return;
             _eventing.off('dialogr.find-opener');
             var deferred = self.Deferred();
             _eventing.setDialogrId(_currentDialog.id);
-            _eventing.setTargetWindow(e.source);
+            _eventing.setNamedTarget('dialog', e.source);
 
-            _eventing.on('dialogr.i-am-your-father', function(e) {
-                console.warn("Found my parent. yay!",e);
-            })
-
-            if (openerDialogId) {
-                dialogr.triggerAs(openerDialogId, 'dialogr.ping-your-dialog', null, _currentDialog.id);
-            }
 
             deferred.resolve(extend({
                 openerUrl : window.location.href.toString(),
-                dialogrId : _currentDialog.id
+                dialogrId : _currentDialog.id,
+                param : _dialogOptions.param
             }, {
                 opener : openerDialogId
             }));
-            console.info("EventingManager Connected to dialog", _currentDialog.id);
-            _elements.loaderOverlay.style.visibility = "hidden";
-            _elements.content.style.visibility = "visible";
+            
             return deferred.promise();
         });
 
-        _eventing.on('dialogr.ping-your-dialog', function(e) {
-            console.info("OK, attempt to find my dialog...", _currentDialog.id);
-
+        /*_eventing.on('dialogr.ping-your-dialog', function(e) {
+            console.info("OK, attempt to find my dialog...", _currentDialog.id, window.location.href);
             var t= win.parent;
             for (var i=0; i < t.window.frames.length; i++) {
                 _eventing.send("dialogr.i-am-your-father", { "n" : "ooo" }, null, t.window.frames[i]);
             }
+        })*/
 
-
-        })
+        function onResizeEventHandler() {
+            onResize(_elements, _dialogOptions);
+        }
 
         _eventing.on('dialogr.reject', function(d) {
             dialogDeferred.reject(d);
-            console.warn("REJECT",d);
-            close();
+            _currentDialog.close();
+        });
+
+        _eventing.on('dialogr.resolve', function(d) {
+            dialogDeferred.resolve(d);
+            //if (idFromDialogEvent) {
+            //    _eventing.send('dialogr.close', null, null, 'eventingTarget', openerDialogId);
+            //} else {
+               _currentDialog.close();
+            //}
+        });
+
+        _eventing.on('dialogr.close', function(d,e,f) {
+          // console.warn("Received close",d,e,f);
+            _currentDialog.close();
+        });
+
+        _eventing.on('dialogr.block', function() {
+            _elements.loaderOverlay.style.visibility = 'visible';
+        });
+
+        _eventing.on('dialogr.unblock', function() {
+            _elements.loaderOverlay.style.visibility = 'hidden';
+            _elements.content.style.visibility = "visible";
         });
 
         if ( (!idFromDialogEvent) || (idFromDialogEvent && idFromDialogEvent !== true) ) {
 
-            console.info("Ok, this new dialog was opened by the dialog with id", openerDialogId);
+           // console.info("Ok, this new dialog was opened by the dialog with id", openerDialogId);
 
             
 
@@ -1247,19 +920,37 @@ return;
                 onResize(_elements, _dialogOptions);
             }, 5);
 
-            attachEventHandler(window, 'resize', function() {
-                onResize(_elements, _dialogOptions);
-            });
+            attachEventHandler(window, 'resize', onResizeEventHandler);
             openedDialog = true;
 
             _elements.content.setAttribute('src', _dialogOptions.url);
 
         }
-       
+      
         this.$$e = _eventing;
+        this.$$el = _elements;
         this.block = function() {}
         this.unblock = function() {}
-        this.close = function() {}
+        this.close = function() {
+            //if (openerDialogId) {
+            //    _eventing.send('dialogr.close');
+           // }
+           if (_weAre.father && !_weAre.mother) {
+            _eventing.send('dialogr.close');
+           } else if (_weAre.mother) {
+               
+               for (var i=0; i < _dialogs.length; i++) {
+                if (_dialogs[i].id == _currentDialog.id) {
+                    _dialogs.splice(i, 1);
+                    break;
+                }
+               }
+               if (_elements && _elements.dialog && _elements.dialog.parentNode && _elements.overlay) {
+                   _elements.dialog.parentNode.removeChild(_elements.dialog);
+                   _elements.overlay.parentNode.removeChild(_elements.overlay);
+               }
+            }
+        }
         this.always = dialogDeferred.then;
         this.done = dialogDeferred.done;
         this.fail = dialogDeferred.fail;
@@ -1283,7 +974,7 @@ return;
         };
 
         this.on = function(name, callback) {
-            console.warn(_currentDialog.id, "LISTEN FOR", name);
+        //            console.warn(_currentDialog.id, "LISTEN FOR", name);
             _eventing.on(name, callback);
             return _currentDialog;
         };
@@ -1322,6 +1013,9 @@ return;
         contentElement.setWidth( dialogSize.innerWidth() );
         var x =  dialogSize.innerHeight() - footerElement.height() - headerElement.height();
 
+       // alert( getStyle(dialogElement__content, 'visibility') );
+
+//console.warn("content size", contentElement.height());
         contentElement.setHeight( dialogSize.innerHeight() - footerElement.height() - headerElement.height()  );
         footerElement.setTop( contentElement.height() + headerElement.height() );
         footerElement.setWidth( dialogSize.innerWidth() );
@@ -1402,7 +1096,8 @@ return;
         dialogElement = document.createElement('div');
         dialogElement.setAttribute("class", dialogOptions.className);
         dialogElement.style.position = 'fixed';
-        dialogElement.style.zIndex = '150';
+        dialogElement.style.zIndex = dialogOptions.zIndex;
+        dialogElement.style.display = 'block';
 
         dialogElement__overlay = document.createElement('div');
         dialogElement__overlay.setAttribute("data-dialogr-id", id);
@@ -1413,13 +1108,14 @@ return;
         dialogElement__overlay.style.height = '100%';
         dialogElement__overlay.style.top = '0';
         dialogElement__overlay.style.left = '0';
-        dialogElement__overlay.style.zIndex = '100';
+        dialogElement__overlay.style.zIndex = dialogElement.style.zIndex - 10;
         //
        // dialogElement__content.style.visibility = "hidden";
 
         dialogElement__content = document.createElement('iframe');
         dialogElement__content.setAttribute("class", dialogOptions.className + "__content");
         dialogElement__content.style.position = 'absolute';
+        dialogElement__content.style.display = 'block';
         dialogElement__content.style.visibility = "hidden";
 
         dialogElement__loaderOverlay = document.createElement('div');
@@ -1428,30 +1124,35 @@ return;
         dialogElement__loaderOverlay.style.border = '1px solid #aaa';
         dialogElement__loaderOverlay.style.backgroundColor = 'rgba(255,255,255,0.8)';
         dialogElement__loaderOverlay.style.cursor = 'wait';
+        dialogElement__loaderOverlay.style.display = 'block';
 
         dialogElement__loader = document.createElement('div');
         dialogElement__loader.setAttribute("class", dialogOptions.className + "__overlay");
         dialogElement__loader.style.position = 'absolute';
         dialogElement__loader.style.backgroundColor = '#fff';
         dialogElement__loaderOverlay.style.visibility = 'visible';
+        dialogElement__loaderOverlay.style.display = 'block';
 
         dialogElement__loader.innerHTML = "Loading...";        
+        dialogElement__loader.style.display = 'block';
 
         dialogElement__footer = document.createElement('div');
         dialogElement__footer.setAttribute("class", dialogOptions.className + "__footer");
         dialogElement__footer.style.position = 'absolute';
+        dialogElement__footer.style.display = 'block';
 
         dialogElement__header = document.createElement('div');
         dialogElement__header.setAttribute("class", dialogOptions.className + "__header");
         dialogElement__header.style.overflow = 'hidden';
+        dialogElement__header.style.display = 'block';
 
 
         var buttonCount = 0;
 
-        if(typeof dialogOptions.buttons !== "undefined") {
+        if(!isUndefined(dialogOptions.buttons)) {
             if (dialogOptions.buttons.constructor === Array) {
                 for (var i=0; i < dialogOptions.buttons.length; i++) {
-                    dialogElement__footer.innerHTML += "<button  onclick='javascript:dialogr.trigger(\"" + id + "\", \"button_" + key + "\")' class='dialogr__button'>" + dialogOptions.buttons[i] + "</button>";
+                    dialogElement__footer.innerHTML += "<button  onclick='javascript:dialogr.trigger(\"" + id + "\", \"button_" + i + "\")' class='dialogr__button'>" + dialogOptions.buttons[i] + "</button>";
                     buttonCount++;
                 }
             } else if (typeof dialogOptions.buttons === "object") {

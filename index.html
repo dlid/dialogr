@@ -3,68 +3,24 @@
 	<head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-	</head>
 	<link rel="stylesheet" href="dialogr.css"></html>
 	<script src="dialogr.js"></script>
 	<script type="text/javascript">
-
-
-	function demoDialog_fieldTest() {
-		dialogr.open({
-			width : 600, height : 450,
-			title : "Bound fields",
-			buttons : {
-				"OK" :  {
-					close : true,
-					updateFields : true,
-				},
-				"Cancel" : false // And this will just close the dialog
-			},
-			args : {"normal argument":"and its value"},
-
-			fieldArgs : {
-				boundArgument : '#tbxName'
-			},
-			url : "frame_fieldtest.html?",
-
-			"pong" : function() {
-				dialogr.ping()
-			}
-		});
-	}
 
 	var name = "";
 
 	function newDemo() {
 
 		dialogr.open('frame_content.html', {
-			//buttons : ["hej", "ost", "lakrits"]
-			width : '500px',
-			height : 90,
-			minWidth : 100,
-			param : {
-				name : name
-			},
-			fields : 
-			{
-				"fieldone" : document.getElementById('somefield')
-			},
-			buttons : null
+			width : 500, height : 105,
+			param : { name : name }
 		})
-
-		// You can send custom events from the dialog and handle them here
-		.on('update_name', function(newName) {
-
-			var deferred = dialogr.deferred();
-
-			//setTimeout(function() {
-				deferred.resolve(newName);
-				name = newName;
-				document.getElementById('name').innerText = newName
-		//	}, 1000);
-
-			return deferred.promise();
+		.done(function(resolvedNameFromDialog) {
+			name = resolvedNameFromDialog;
+			document.getElementById('name').innerText = resolvedNameFromDialog;
+		})
+		.fail(function() {
+			
 		});
 
 	}
@@ -77,13 +33,25 @@
 			width : '600px',
 			height : '480px',
 			maxWidth : 400,
-			title : "Blog Post Tags",
+			title : "Profile",
 			buttons : {
 				"save" : { text : "Save" },
 				"discard" : {text : "Cancel"},
 				"apply" : { text : "Apply", disabled : true }
 			}
-		});
+		})
+		.on('name_updated_was_it', function(resolvedNameFromDialog) {
+			var d = dialogr.deferred();
+			document.getElementById('name').innerText = resolvedNameFromDialog;
+			name = resolvedNameFromDialog;
+			setTimeout(function() {
+				d.resolve();
+			}, 1500);
+			return d.promise();
+		})
+		.done(function() {
+			alert("yes");
+		})
 	}
 
 	function demoDialog() {
@@ -130,6 +98,8 @@
 			font-size: 1.1em;
 		}
 	</style>
+	</head>
+	
 <body>
 
 	<div class="hero">
