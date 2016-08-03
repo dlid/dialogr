@@ -1,74 +1,32 @@
 <!DOCTYPE html>
 <html>
-	<head>
-	<style>	
-		body,html {overflow: none;}
-	</style>
-	</head>
+<head>
 	<script src="dialogr.js"></script>
-
 	<script>
+		dialogr.ready().done(function(dialogContext) {
 
-	var dlg;
-
-		// Call the dialogr ready function to indicate that the dialog
-		// is loaded, and to get access to parameters and callback functions
-		dialogr.ready().done(function(dialog) {
-			dlg = dialog;
-			//dlg.buttons.enable();
-
-			console.warn(dialog);
-
-			if (dlg.param.name) 
-				document.getElementById('name').value = dlg.param.name;
-
-		document.getElementById('name').onkeydown = function(e) {
-			if (e.keyCode == 13) {
-				if (document.getElementById('name').value.length > 0) {
-					okClick();
-				}
-			} else if (e.keyCode == 27) {
-				dlg.close();
+			if (dialogContext.param.name) {
+				document.getElementById('name').value = dialogContext.param.name;
 			}
-		}
 
+			dialogContext
+			
+			.on('button_0', function() {
+				var name = document.getElementById('name').value;
+					dialogContext.resolve(name);
+			})
 
-			// Bind button events
-			dlg
-			.on('button_ok', okClick)
-			.on('button_cancel', cancelClick);
+			.on('button_1', function() {
+				dialogContext.close();
+			})
 
 		});
-
-
-		//Clicking OK will resolve and close the dialog
-		function okClick() {
-
-			dlg.block();
-			dlg.invoke('update_name', document.getElementById('name').value).then(function(e) {
-				console.warn("name was updated to", e);
-				dlg.resolve();
-			}, function(ex) {
-				console.error("a", ex);
-				dlg.unblock();
-			});;
-
-			//dialog.resolve(document.getElementById('name').value);
-		}
-
-		// Clicking cancel will reject and close the dialog
-		function cancelClick() {
-			dlg.reject();
-		}
-
-
-
 	</script>
-<body>
-	<label style="font-weight: bold;">Enter your name</label><br />
-	<input type="text" id="name" />
-	<button onclick="javascript:okClick();">ok</button>
-	<button onclick="jbuttonvascript:cancelClick();">Cancel</button>
+</head>
 
-</body>
-</html>
+	<head>
+	<label style="font-weight: bold;">Name: </label>
+	<input type="text" id="name" />
+	
+
+

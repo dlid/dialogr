@@ -16,47 +16,87 @@
 			dlg = dialog;
 
 			document.getElementById('name').onkeyup = function() {
-				dlg.trigger('an_update', document.getElementById('name').value);
+				dlg.trigger('an_update', document.getElementById('name').innerText);
 			}
+
+
 			dlg
+			.on('button_save', function() {
+				dlg.resolve();
+			})
+			.on('button_apply', function() {
+				dlg.block();
+			})
 			.on('button_discard', function() {
 				dlg.reject();
 			});
 		});
 
+		function fakeLoader() {
+			dlg.block();
+			setTimeout(function() {
+				dlg.unblock();
+			},3000);
+		}
+
 		function child() {
 			dialogr.open("frame_content.html", {
-				buttons : null
+				width : 500, height: 120,
+				param : {
+					name : document.getElementById('name').innerText
+				}
 			})
-			.then(function() {
-				alert("rejected again");
-			},function() {
-				alert("mmh");
-			}).on('update_name', function(dataFromAnotherWorld) {
-				var deferred = dialogr.deferred();
-					console.info("THIS!", dataFromAnotherWorld);
-					document.getElementById('name').value = dataFromAnotherWorld;
-					deferred.resolve();
-					return deferred.promise();
+			.done(function(name) {
+				document.getElementById('name').innerText = name;
+				dlg.block();
+				dlg.invoke('name_updated_was_it', name).then(function() {
+					dlg.unblock();
+				});
 			});
 		}
 
 
 	</script>
-<body>
+<body>	
+	<div style="margin-bottom: 1em; clear:both;overflow:auto;">
+	<img src="https://placeimg.com/80/80/people" style="float:left; margin-right: 20px;" />
+	<div style="margin-top: 1em;">
+		<span id="name" style="width: 70%;">No alias</span> <a href="javascript:child()">...</a>
+	</div>
+	</div>
+
+	<hr style="clear:both;" />
+	
 	<table width="100%">
 		<colgroup>
-			<col width="90px">
+			<col width="110px">
 		</colgroup>
 		<tbody>
 			<tr>
-				<th style="font-size: .85em; font-weight: normal;text-align:left;">Name</th>
-				<td><input id="name" style="display: block; width: 96%;"/></td>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">E-mail</th>
+				<td><input type="text" /></td>
 			</tr>
 			<tr>
-				<th style="font-size: .85em; font-weight: normal;text-align:left;">Advanced</th>
-				<td><a href="javascript:child()">advanced</a></td>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">First name</th>
+				<td><input type="text" /></td>
 			</tr>
+			<tr>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">Last name</th>
+				<td><input type="text" /></td>
+			</tr>
+			<tr>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">Year of birth</th>
+				<td><input type="number" /></td>
+			</tr>
+			<tr>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">Timezone</th>
+				<td><select><option>Europe/Stockholm</option></select></td>
+			</tr>
+			<tr>
+				<th style="font-size: .85em; font-weight: normal;text-align:left;">Fake loader</th>
+				<td><a href="javascript:fakeLoader()">Start fake loader </a> (3 seconds)</td>
+			</tr>
+		
 		</tbody>
 	</table>
 </body>

@@ -43,6 +43,10 @@
 
     var uniqnames = ["Bames", "Lilleskutt", "Skalman", "Vargen", "Teddy", "Jansson", "Husmusen"];
 
+    /*! Deferred (https://github.com/warpdesign/deferred-js) */
+    //=require ../build/_deferred_temp.js
+
+    
     function uniqid(prefix) {
         prefix = prefix || "u";
         _uniqidix ++;
@@ -965,9 +969,7 @@
         return obj;
     }
 
-    /*! Deferred (https://github.com/warpdesign/deferred-js) */
-    //=require ../build/_deferred_temp.js
-
+    
     winloadDeferred = this.Deferred();
 
     if (document.readyState === "complete") {

@@ -25,8 +25,8 @@ gulp.task('update-deferred-js', function() {
 		])
 	 .pipe(concat('_deferred_temp.js'))
 	 .pipe(replace(/\(window\);/, '(this);'))
-	 .pipe(replace(/obj == null/g, 'obj === null'))
-
+	 //.pipe(replace(/obj == null/g, 'obj === null'))
+ 
 	 .pipe(gulp.dest('build'))
 });
 
