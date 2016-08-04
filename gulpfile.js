@@ -4,7 +4,30 @@ var gulp = require('gulp'),
 		uglify = require('gulp-uglify'),
 		include_file = require('gulp-include'),
 		jshint = require('gulp-jshint'),
-		replace = require('gulp-replace');
+		replace = require('gulp-replace')
+    	inject = require('gulp-inject-string'),
+    	fs = require('fs'),
+    	package = JSON.parse(fs.readFileSync('./package.json')),
+    	webPage = package.homepage ? package.homepage : "";
+
+
+ var to_inject = function()
+    {
+    	var headerComment = "/*global window, document */\n" +
+		"/**\n" +
+		" * " + package.name + " v" + package.version + "\n"+
+		" * © 2016 " + package.author + ". " + webPage +"\n" +
+ 		"* License: "+package.license+"\n" +
+		" */\n\n";
+
+        return [headerComment + '(function(win) {', "win.dialogr = Dialogr(); }(window));"];
+    },
+    to_inject_min = function()
+    {
+    	var headerComment = "/*! " + package.name + " v" + package.version + " © 2016 " + package.author + " ("+package.license+" license, "+webPage+")*/\n";
+
+        return [headerComment, ""];
+    }
 
 // JSHint for separate files
 gulp.task('hint', function() {
@@ -32,12 +55,14 @@ gulp.task('update-deferred-js', function() {
 
 
 
+
 // Concatenate JS Files
 gulp.task('scripts', function() {
     return gulp.src([
       		'source/main.js'
       		])
     	.pipe(include_file())
+    	.pipe(inject.wrap(to_inject()[0], to_inject()[1]))
     	.pipe(jshint())
     	.pipe(jshint.reporter('default'))
       .pipe(concat('dialogr.js'))
@@ -50,6 +75,7 @@ gulp.task('scripts', function() {
 				  sourceMap: false,
 				  mangle: true
 				}))
+      .pipe(inject.wrap(to_inject_min()[0], to_inject()[1]))
       .pipe(gulp.dest('build'));
 });
 

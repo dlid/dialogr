@@ -1,13 +1,11 @@
-/*jshint */
 /*global window, document */
 /**
- * @license Dialogr v0.1.1
- * (c) 2016 dlid.se. http://docs.dlid.se/dialogr
- * License: MIT
+ * dialogr v0.0.8
+ * © 2016 David Lidström. https://docs.dlid.se/dialogr
+* License: MIT
  */
-(function(win) {
 
-    var dialogrDefaults = {
+(function(win) {    var dialogrDefaults = {
         zIndex : 1500,
         url : null,
         className : 'dialogr',
@@ -39,351 +37,650 @@
     dialogId = null,
     self = this;
 
-    var uniqnames = ["Bames", "Lilleskutt", "Skalman", "Vargen", "Teddy", "Jansson", "Husmusen"]
+    var uniqnames = ["Bames", "Lilleskutt", "Skalman", "Vargen", "Teddy", "Jansson", "Husmusen"];
 
+    /*! Deferred (https://github.com/warpdesign/deferred-js) */
+    (function(global) {
+    	function isArray(arr) {
+    		return Object.prototype.toString.call(arr) === '[object Array]';
+    	}
+    
+    	function foreach(arr, handler) {
+    		if (isArray(arr)) {
+    			for (var i = 0; i < arr.length; i++) {
+    				handler(arr[i]);
+    			}
+    		}
+    		else
+    			handler(arr);
+    	}
+    
+    	function D(fn) {
+    		var status = 'pending',
+    			doneFuncs = [],
+    			failFuncs = [],
+    			progressFuncs = [],
+    			resultArgs = null,
+    
+    		promise = {
+    			done: function() {
+    				for (var i = 0; i < arguments.length; i++) {
+    					// skip any undefined or null arguments
+    					if (!arguments[i]) {
+    						continue;
+    					}
+    
+    					if (isArray(arguments[i])) {
+    						var arr = arguments[i];
+    						for (var j = 0; j < arr.length; j++) {
+    							// immediately call the function if the deferred has been resolved
+    							if (status === 'resolved') {
+    								arr[j].apply(this, resultArgs);
+    							}
+    
+    							doneFuncs.push(arr[j]);
+    						}
+    					}
+    					else {
+    						// immediately call the function if the deferred has been resolved
+    						if (status === 'resolved') {
+    							arguments[i].apply(this, resultArgs);
+    						}
+    
+    						doneFuncs.push(arguments[i]);
+    					}
+    				}
+    				
+    				return this;
+    			},
+    
+    			fail: function() {
+    				for (var i = 0; i < arguments.length; i++) {
+    					// skip any undefined or null arguments
+    					if (!arguments[i]) {
+    						continue;
+    					}
+    
+    					if (isArray(arguments[i])) {
+    						var arr = arguments[i];
+    						for (var j = 0; j < arr.length; j++) {
+    							// immediately call the function if the deferred has been resolved
+    							if (status === 'rejected') {
+    								arr[j].apply(this, resultArgs);
+    							}
+    
+    							failFuncs.push(arr[j]);
+    						}
+    					}
+    					else {
+    						// immediately call the function if the deferred has been resolved
+    						if (status === 'rejected') {
+    							arguments[i].apply(this, resultArgs);
+    						}
+    
+    						failFuncs.push(arguments[i]);
+    					}
+    				}
+    				
+    				return this;
+    			},
+    
+    			always: function() {
+    				return this.done.apply(this, arguments).fail.apply(this, arguments);
+    			},
+    
+    			progress: function() {
+    				for (var i = 0; i < arguments.length; i++) {
+    					// skip any undefined or null arguments
+    					if (!arguments[i]) {
+    						continue;
+    					}
+    
+    					if (isArray(arguments[i])) {
+    						var arr = arguments[i];
+    						for (var j = 0; j < arr.length; j++) {
+    							// immediately call the function if the deferred has been resolved
+    							if (status === 'pending') {
+    								progressFuncs.push(arr[j]);
+    							}
+    						}
+    					}
+    					else {
+    						// immediately call the function if the deferred has been resolved
+    						if (status === 'pending') {
+    							progressFuncs.push(arguments[i]);
+    						}
+    					}
+    				}
+    				
+    				return this;
+    			},
+    
+    			then: function() {
+    				// fail callbacks
+    				if (arguments.length > 1 && arguments[1]) {
+    					this.fail(arguments[1]);
+    				}
+    
+    				// done callbacks
+    				if (arguments.length > 0 && arguments[0]) {
+    					this.done(arguments[0]);
+    				}
+    
+    				// notify callbacks
+    				if (arguments.length > 2 && arguments[2]) {
+    					this.progress(arguments[2]);
+    				}
+    			},
+    
+    			promise: function(obj) {
+    				if (obj == null) {
+    					return promise;
+    				} else {
+    					for (var i in promise) {
+    						obj[i] = promise[i];
+    					}
+    					return obj;
+    				}
+    			},
+    
+    			state: function() {
+    				return status;
+    			},
+    
+    			debug: function() {
+    				console.log('[debug]', doneFuncs, failFuncs, status);
+    			},
+    
+    			isRejected: function() {
+    				return status === 'rejected';
+    			},
+    
+    			isResolved: function() {
+    				return status === 'resolved';
+    			},
+    
+    			pipe: function(done, fail, progress) {
+    				return D(function(def) {
+    					foreach(done, function(func) {
+    						// filter function
+    						if (typeof func === 'function') {
+    							deferred.done(function() {
+    								var returnval = func.apply(this, arguments);
+    								// if a new deferred/promise is returned, its state is passed to the current deferred/promise
+    								if (returnval && typeof returnval === 'function') {
+    									returnval.promise().then(def.resolve, def.reject, def.notify);
+    								}
+    								else {	// if new return val is passed, it is passed to the piped done
+    									def.resolve(returnval);
+    								}
+    							});
+    						}
+    						else {
+    							deferred.done(def.resolve);
+    						}
+    					});
+    
+    					foreach(fail, function(func) {
+    						if (typeof func === 'function') {
+    							deferred.fail(function() {
+    								var returnval = func.apply(this, arguments);
+    								
+    								if (returnval && typeof returnval === 'function') {
+    									returnval.promise().then(def.resolve, def.reject, def.notify);
+    								} else {
+    									def.reject(returnval);
+    								}
+    							});
+    						}
+    						else {
+    							deferred.fail(def.reject);
+    						}
+    					});
+    				}).promise();
+    			}
+    		},
+    
+    		deferred = {
+    			resolveWith: function(context) {
+    				if (status === 'pending') {
+    					status = 'resolved';
+    					var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
+    					for (var i = 0; i < doneFuncs.length; i++) {
+    						doneFuncs[i].apply(context, args);
+    					}
+    				}
+    				return this;
+    			},
+    
+    			rejectWith: function(context) {
+    				if (status === 'pending') {
+    					status = 'rejected';
+    					var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
+    					for (var i = 0; i < failFuncs.length; i++) {
+    						failFuncs[i].apply(context, args);
+    					}
+    				}
+    				return this;
+    			},
+    
+    			notifyWith: function(context) {
+    				if (status === 'pending') {
+    					var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
+    					for (var i = 0; i < progressFuncs.length; i++) {
+    						progressFuncs[i].apply(context, args);
+    					}
+    				}
+    				return this;
+    			},
+    
+    			resolve: function() {
+    				return this.resolveWith(this, arguments);
+    			},
+    
+    			reject: function() {
+    				return this.rejectWith(this, arguments);
+    			},
+    
+    			notify: function() {
+    				return this.notifyWith(this, arguments);
+    			}
+    		}
+    
+    		var obj = promise.promise(deferred);
+    
+    		if (fn) {
+    			fn.apply(obj, [obj]);
+    		}
+    
+    		return obj;
+    	}
+    
+    	D.when = function() {
+    		if (arguments.length < 2) {
+    			var obj = arguments.length ? arguments[0] : undefined;
+    			if (obj && (typeof obj.isResolved === 'function' && typeof obj.isRejected === 'function')) {
+    				return obj.promise();			
+    			}
+    			else {
+    				return D().resolve(obj).promise();
+    			}
+    		}
+    		else {
+    			return (function(args){
+    				var df = D(),
+    					size = args.length,
+    					done = 0,
+    					rp = new Array(size);	// resolve params: params of each resolve, we need to track down them to be able to pass them in the correct order if the master needs to be resolved
+    
+    				for (var i = 0; i < args.length; i++) {
+    					(function(j) {
+                            var obj = null;
+                            
+                            if (args[j].done) {
+                                args[j].done(function() { rp[j] = (arguments.length < 2) ? arguments[0] : arguments; if (++done == size) { df.resolve.apply(df, rp); }})
+                                .fail(function() { df.reject(arguments); });
+                            } else {
+                                obj = args[j];
+                                args[j] = new Deferred();
+                                
+                                args[j].done(function() { rp[j] = (arguments.length < 2) ? arguments[0] : arguments; if (++done == size) { df.resolve.apply(df, rp); }})
+                                .fail(function() { df.reject(arguments); }).resolve(obj);
+                            }
+    					})(i);
+    				}
+    
+    				return df.promise();
+    			})(arguments);
+    		}
+    	}
+    
+    	global.Deferred = D;
+    })(this);
+
+    
     function uniqid(prefix) {
         prefix = prefix || "u";
         _uniqidix ++;
         return ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).slice(-4) + _uniqidix;
     }
 
-
-    function EventingManager(eventingDialogId, targetWindow, isDialogContext, openingDialogId) {
-
-        //console.warn("NEW EventingManager", arguments, window.location.href.toString());
-
-        var _targetWindow = targetWindow || null,
-            _eventingTargetWindow = null,
-            _messageId = 0,
-            _messageIdPrefix = uniqid('m'),
-            _eventHandlers = {},
-            _boundDialogId = null,
-            _direction = "",
-            _weAre = null,
-            _namedTargets = {
-                'mother' : targetWindow || null,
-                'father' : targetWindow || null,
-                'child' : null
-            };
-
-        function reset() {
-            _messageIdPrefix = uniqid('m');
-            _eventHandlers = {};
-        }
-
-        function on(eventName, callback) {
-            if (isUndefined(_eventHandlers[eventName])) _eventHandlers[eventName] = [];
-            _eventHandlers[eventName].push(callback);
-            return this;
-        }
-
-        function off(eventName, callback) {
-//            if (!isUndefined(_eventHandlers[eventName])) _eventHandlers[eventName] = [];
-            return this;
-        }
-
-        attachEventHandler(window, 'message', messageHandler);
-
-        function send(name, data, options, targetWindow, asDialogId) {
-            var customTargetWindow = typeof targetWindow !== "undefined" && targetWindow != null; 
-            options = extend({
-                await : null,
-                messageId : null
-            }, options || {});
-
-            /*if (!targetWindow) {
-                if (_targetWindow) {
-                    targetWindow = _targetWindow;
-                }
-            } else if (typeof targetWindow == 'string' && targetWindow == 'eventingTarget') {
-                eventingTarget = win.parent;
-            }*/
-
-            if (!options.messageId) {
-                _messageId++;
-                options.messageId =  _messageIdPrefix + "_" + _messageId;
-            }
-
-            var sendToTargetWindow = 'mother',
-                messagesToMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock', 'dialogr.open']; 
-            if (customTargetWindow) {
-                sendToTargetWindow = "custom target window";
-            } else if (_weAre !== null) {
-                if (_weAre.child) {
-                    if (messagesToMother.indexOf(name) === -1) {
-                        sendToTargetWindow = "father";
-                    }
-                } else if (!_weAre.mother && _weAre.father && messagesToMother.indexOf(name) !== -1) {
-                    sendToTargetWindow = "mother";
-                } else if (_weAre.mother || _weAre.father) {
-                    sendToTargetWindow = "dialog";
-                }
-            }
-
-           // console.warn("{"+weAreToString()+"} SEND '"+name+"' to", sendToTargetWindow);
-
-
-             var message = {
-                direction : _direction,
-                source : 'dialogr',
-                messageType : name,
-                messageData : data,
-                messageId : options.messageId,
-                dialogrId : asDialogId ? asDialogId : _boundDialogId,
-                await : options.await,
-                fromLocation : win.location.href
-            };
-        
-            /*var targetName = (!isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : 'ROOT');
-            
-             if (_eventingTargetWindow) {
-                var toMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock']; 
-                if ( toMother.indexOf(message.messageType) === -1 ) {
-                    targetWindow = _eventingTargetWindow;
-                    targetName = "father";
-                } else {
-                    targetName = "mother";
-                }
-            }*/
-
-//            console.info('[' + weAreToString() + ']=>[' + sendToTargetWindow + "]", name, message, window.location.href);
-
-            var resolvedTargetWindow = customTargetWindow ? targetWindow : _namedTargets[sendToTargetWindow];
-            if (typeof resolvedTargetWindow === "undefined" || resolvedTargetWindow == null) {
-                console.error("Target window was null or undefined", sendToTargetWindow);
-                return;
-            }
-
-            resolvedTargetWindow.postMessage(JSON.stringify(message), '*');
-
-        }
-
-        if (targetWindow == null) {
-            _direction = "opener=>dialog";
-        } else {
-            _direction = "dialog=>opener";
-        }
-
-        function messageHandler(e) {
-            if (e.source == window) {
-                return;
-            }
-            var o;
-            try { o = JSON.parse(e.data); } catch(e) {}
-            if (o) {
-                if (!isUndefined(o.source) && o.source === "dialogr") {
-                        
-
-                    if (!_boundDialogId) {
-                        if (o.messageType.indexOf('dialogr.find-opener') === -1) {
-                            return;
-                        }
-                    } else if (_boundDialogId !== o.dialogrId) {
-                        return;
-                    }
-
-                    /*if (o.messageType == "dialogr.i-am-your-father") {
-                        setEventingTargetWindow(e.source);
-                        document.getElementsByTagName('body')[0].style.backgroundColor = 'orange';
-                        console.info("Ok. Send non-dialogr-stuff here: ", openingDialogId, e);
-                        return;
-                    }*/
-
-//                    console.info("=>["+weAreToString()+"]", o.messageType, o, _eventHandlers, window.location);
-
-                    /*if (isUndefined(_eventHandlers[o.messageType])) {
-                        if (openingDialogId && !_dialogContext && o.messageType.indexOf('dialogr.') !== 0) {
-                            console.info("Meddelande från " + o.dialogrId +  " - skicka vidare till dialogen som öppnade den: ", openingDialogId, o.await);
-                            if (o.await) {
-                                dialogr.invokeAs(openingDialogId, o.messageType, o.messageData, o.dialogrId).then(function(dddd) {
-                                    console.warn("InvokeAs fungerade iaf...", dddd);
-                                }, function(ddd) {
-                                    console.warn("InvokeAs fungerade INTE!!", ddd);
-                                });
-                            } else {
-                                dialogr.triggerAs(openingDialogId, o.messageType, o.messageData, o.dialogrId);
-                            }
-                            return;
-                        }
-                    }*/
-
-                   
-                    if(!isUndefined(_eventHandlers[o.messageType])) {
-                       // console.warn("handlers", eventingDialogId, _eventHandlers);
-                        if (!o.await) {
-                            for (var i = 0; i < _eventHandlers[o.messageType].length; i++) {
-                                var fnRet = _eventHandlers[o.messageType][i](o.messageData, o, e);
-                            }
-                        } else {
-
-                            var _boundEventHandlers = _eventHandlers[o.messageType].slice(0),
-                                 n = 0,
-                                responses = [],
-                                timer = null,
-                                isSuccess = true;
-
-                            function callbackReady(data) {
-                                n++;
-                                if (data.type === "fail") isSuccess = false;
-
-                                responses.push(data);
-                                if (n === _boundEventHandlers.length) {
-                                    clearTimeout(timer);
-                                    send(o.messageId + "_response", {
-                                        type : isSuccess ? "success" : "fail",
-                                        response : responses
-                                    }, null, e.source);
-                                }
-                            }
-
-                            timer = setTimeout(function() {
-                                send(o.messageId + "_response", {
-                                    type : "fail",
-                                    response : ["Operation took too long > " + o.await + "ms"]
-                                }, null, e.source);
-                            }, o.await);
-
-                            for (var i = 0; i < _boundEventHandlers.length; i++) {
-                                var fnRet = _boundEventHandlers[i](o.messageData, o, e);
-                                
-                                if (o.await) {
-                                    if (fnRet && fnRet.done && fnRet.fail && fnRet.promise) {
-
-                                        fnRet.then(function(r) {
-
-                                            if (!timer) return;
-                                            callbackReady( {
-                                                index : i,
-                                                type : "success",
-                                                data : r
-                                            });
-                                        },
-                                        function(r) {
-                                            if (!timer) return;
-                                            callbackReady({
-                                                index : i,
-                                                type : "fail",
-                                                data : r
-                                            });
-                                        });
-                                    } else {
-                                        if (!timer) return;
-                                        callbackReady( {
-                                            apa : 3,
-                                            index : i,
-                                            type : "success",
-                                            data : fnRet
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (o.await) {
-                            console.warn("no handlers in", eventingDialogId, _eventHandlers, window.location);
-                            // No listeners? Let's just return a success without any data
-                            send(o.messageId + "_response", {
-                                type : "fail",
-                                response : ["Nothing listening for '" + o.messageType + "'"]
-                            }, null, e.source);
-                        }
-                    }
-                }
-            }
-        }
-
-        function sendAndWait(name, data, options, targetWindow, asDialogId) {
-            var d = self.Deferred();
-            options = extend({
-                await : 5000
-            }, options || {});
-
-            // Create the id here so we can start listening for the reply before sending the message
-            _messageId++;
-            options.messageId =  name + "://await" + _messageIdPrefix + _messageId;
-
-            on(options.messageId + "_response", function(r,e,f) {
-                //console.warn("onresponse", r,e,f);
-                var responseData = [];
-                for (var i=0; i < r.response.length; i++) {
-                    if (typeof r.response[i] === "string") {
-                         responseData.push(r.response[i]);
-                    } else if (r.response[i].data ) {
-                        responseData.push(r.response[i].data );
-                    }
-                }
-
-                var ddd = {
-                    messageEvent : f,
-                    message : e
-                };
-
-                if (r.type === "fail") {
-                    d.rejectWith(ddd, [responseData.length == 1 ? responseData[0] : responseData] );
-                } else {
-                    d.resolveWith(ddd, [responseData.length == 1 ? responseData[0] : responseData] );
-                }
-            });
-            var msg = send(name, data, options, targetWindow, asDialogId);
-            return d.promise();
-        }
-
-        function setDialogrId(id) {
-        //    console.warn("SETDALOGRID", eventingDialogId, id);
-            _boundDialogId = id;
-        }
-
-        function setTargetWindow(targetWin) {
-            _targetWindow = targetWin;
-        }
-
-        function setEventingTargetWindow(targetWin) {
-            _eventingTargetWindow = targetWin;
-        }
-
-        function weAreToString() {
-
-            if (!_weAre) return "UNKNOWN";
-            if (_weAre.father && _weAre.mother) 
-                return "fa+mo to " + _weAre.fatherTo;
-
-            if (_weAre.father ) 
-                return "father to " + _weAre.fatherTo;
-
-            if (_weAre.mother ) 
-                return "mother to " + _weAre.motherTo;
-
-            if (_weAre.child ) 
-                return (!_weAre.fatherIdentified ? ' fatherless ' : '') + "child " + _weAre.childId;
-
-            return _weAre.toString();
-        }
-
-        function setNamedTarget(name, namedTargetWindiw) {
-            if (name == "father") _weAre.fatherIdentified = true;
-            _namedTargets[name] = namedTargetWindiw;
-        }
-
-        return {
-            send : send,
-            await : sendAndWait,
-            setDialogrId : setDialogrId,
-            setTargetWindow : setTargetWindow,
-            setEventingTargetWindow : setEventingTargetWindow,
-            setNamedTarget : setNamedTarget,
-            on : on,
-            off : off,
-            handleMessage : messageHandler,
-            $$eventHandlers : _eventHandlers,
-            setIdentity : function(val) {
-                _weAre = val;
-            }
-        }
-
-    }
+    var EventingManager = 
+		/*
+		 The EventingManager will send and receive data between the dialogs (child), its opener (father) and the first opener (mother).
+		*/
+		function EventingManager(eventingDialogId, targetWindow, isDialogContext, openingDialogId) {
+		    var _targetWindow = targetWindow || null,
+		        _eventingTargetWindow = null,
+		        _messageId = 0,
+		        _messageIdPrefix = uniqid('m'),
+		        _eventHandlers = {},
+		        _boundDialogId = null,
+		        _direction = "",
+		        _weAre = null,
+		        _namedTargets = {
+		            'mother' : targetWindow || null,
+		            'father' : targetWindow || null,
+		            'child' : null
+		        };
+		
+		    function reset() {
+		        _messageIdPrefix = uniqid('m');
+		        _eventHandlers = {};
+		    }
+		
+		    function on(eventName, callback) {
+		        if (isUndefined(_eventHandlers[eventName])) _eventHandlers[eventName] = [];
+		        _eventHandlers[eventName].push(callback);
+		        return this;
+		    }
+		
+		    function off(eventName, callback) {
+		        return this;
+		    }
+		
+		    attachEventHandler(window, 'message', messageHandler);
+		
+		    function send(name, data, options, targetWindow, asDialogId) {
+		        var customTargetWindow = typeof targetWindow !== "undefined" && targetWindow !== null; 
+		        options = extend({
+		            await : null,
+		            messageId : null
+		        }, options || {});
+		
+		        if (!options.messageId) {
+		            _messageId++;
+		            options.messageId =  _messageIdPrefix + "_" + _messageId;
+		        }
+		
+		        var sendToTargetWindow = 'mother',
+		            messagesToMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock', 'dialogr.open']; 
+		        if (customTargetWindow) {
+		            sendToTargetWindow = "custom target window";
+		        } else if (_weAre !== null) {
+		            if (_weAre.child) {
+		                if (messagesToMother.indexOf(name) === -1) {
+		                    sendToTargetWindow = "father";
+		                }
+		            } else if (!_weAre.mother && _weAre.father && messagesToMother.indexOf(name) !== -1) {
+		                sendToTargetWindow = "mother";
+		            } else if (_weAre.mother || _weAre.father) {
+		                sendToTargetWindow = "dialog";
+		            }
+		        }
+		
+		       // console.warn("{"+weAreToString()+"} SEND '"+name+"' to", sendToTargetWindow);
+		
+		
+		         var message = {
+		            direction : _direction,
+		            source : 'dialogr',
+		            messageType : name,
+		            messageData : data,
+		            messageId : options.messageId,
+		            dialogrId : asDialogId ? asDialogId : _boundDialogId,
+		            await : options.await,
+		            fromLocation : win.location.href
+		        };
+		    
+		        /*var targetName = (!isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : 'ROOT');
+		        
+		         if (_eventingTargetWindow) {
+		            var toMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock']; 
+		            if ( toMother.indexOf(message.messageType) === -1 ) {
+		                targetWindow = _eventingTargetWindow;
+		                targetName = "father";
+		            } else {
+		                targetName = "mother";
+		            }
+		        }*/
+		
+		//            console.info('[' + weAreToString() + ']=>[' + sendToTargetWindow + "]", name, message, window.location.href);
+		
+		        var resolvedTargetWindow = customTargetWindow ? targetWindow : _namedTargets[sendToTargetWindow];
+		        if (typeof resolvedTargetWindow === "undefined" || resolvedTargetWindow === null) {
+		            console.error("Target window was null or undefined", sendToTargetWindow);
+		            return;
+		        }
+		
+		        resolvedTargetWindow.postMessage(JSON.stringify(message), '*');
+		
+		    }
+		
+		    if (targetWindow === null) {
+		        _direction = "opener=>dialog";
+		    } else {
+		        _direction = "dialog=>opener";
+		    }
+		
+		    function messageHandler(e) {
+		        if (e.source == window) {
+		            return;
+		        }
+		
+						function callbackReady(data) {
+		            n++;
+		            if (data.type === "fail") isSuccess = false;
+		
+		            responses.push(data);
+		            if (n === _boundEventHandlers.length) {
+		                clearTimeout(timer);
+		                send(o.messageId + "_response", {
+		                    type : isSuccess ? "success" : "fail",
+		                    response : responses
+		                }, null, e.source);
+		            }
+		        }
+		
+		        function eventHandlerReady(r) {
+		              if (!timer) return;
+		              callbackReady( {
+		                  index : i,
+		                  type : "success",
+		                  data : r
+		              });
+		        }
+		
+		        function eventHandlerFail(r) {
+		              if (!timer) return;
+		                callbackReady({
+		                    index : i,
+		                    type : "fail",
+		                    data : r
+		                });
+		        }
+		
+		        var o,i,fnRet;
+		        try { o = JSON.parse(e.data); } catch(ev) {}
+		        if (o) {
+		            if (!isUndefined(o.source) && o.source === "dialogr") {
+		                    
+		
+		                if (!_boundDialogId) {
+		                    if (o.messageType.indexOf('dialogr.find-opener') === -1) {
+		                        return;
+		                    }
+		                } else if (_boundDialogId !== o.dialogrId) {
+		                    return;
+		                }
+		
+		                /*if (o.messageType == "dialogr.i-am-your-father") {
+		                    setEventingTargetWindow(e.source);
+		                    document.getElementsByTagName('body')[0].style.backgroundColor = 'orange';
+		                    console.info("Ok. Send non-dialogr-stuff here: ", openingDialogId, e);
+		                    return;
+		                }*/
+		
+		//                    console.info("=>["+weAreToString()+"]", o.messageType, o, _eventHandlers, window.location);
+		
+		                /*if (isUndefined(_eventHandlers[o.messageType])) {
+		                    if (openingDialogId && !_dialogContext && o.messageType.indexOf('dialogr.') !== 0) {
+		                        console.info("Meddelande från " + o.dialogrId +  " - skicka vidare till dialogen som öppnade den: ", openingDialogId, o.await);
+		                        if (o.await) {
+		                            dialogr.invokeAs(openingDialogId, o.messageType, o.messageData, o.dialogrId).then(function(dddd) {
+		                                console.warn("InvokeAs fungerade iaf...", dddd);
+		                            }, function(ddd) {
+		                                console.warn("InvokeAs fungerade INTE!!", ddd);
+		                            });
+		                        } else {
+		                            dialogr.triggerAs(openingDialogId, o.messageType, o.messageData, o.dialogrId);
+		                        }
+		                        return;
+		                    }
+		                }*/
+		
+		               
+		                if(!isUndefined(_eventHandlers[o.messageType])) {
+		                   // console.warn("handlers", eventingDialogId, _eventHandlers);
+		                    if (!o.await) {
+		                        for (i = 0; i < _eventHandlers[o.messageType].length; i++) {
+		                            fnRet = _eventHandlers[o.messageType][i](o.messageData, o, e);
+		                        }
+		                    } else {
+		
+		                        var _boundEventHandlers = _eventHandlers[o.messageType].slice(0),
+		                             n = 0,
+		                            responses = [],
+		                            timer = null,
+		                            isSuccess = true;
+		
+		                        
+		
+		                        timer = setTimeout(function() {
+		                            send(o.messageId + "_response", {
+		                                type : "fail",
+		                                response : ["Operation took too long > " + o.await + "ms"]
+		                            }, null, e.source);
+		                        }, o.await);
+		
+		                        
+		
+		                        for (i = 0; i < _boundEventHandlers.length; i++) {
+		                            fnRet = _boundEventHandlers[i](o.messageData, o, e);
+		                            
+		                            if (o.await) {
+		                                if (fnRet && fnRet.done && fnRet.fail && fnRet.promise) {
+		
+		                                    fnRet.then(eventHandlerReady, eventHandlerFail);
+		                                } else {
+		                                    if (!timer) return;
+		                                    callbackReady( {
+		                                        apa : 3,
+		                                        index : i,
+		                                        type : "success",
+		                                        data : fnRet
+		                                    });
+		                                }
+		                            }
+		                        }
+		                    }
+		                } else {
+		                    if (o.await) {
+		                        console.warn("no handlers in", eventingDialogId, _eventHandlers, window.location);
+		                        // No listeners? Let's just return a success without any data
+		                        send(o.messageId + "_response", {
+		                            type : "fail",
+		                            response : ["Nothing listening for '" + o.messageType + "'"]
+		                        }, null, e.source);
+		                    }
+		                }
+		            }
+		        }
+		    }
+		
+		    function sendAndWait(name, data, options, targetWindow, asDialogId) {
+		        var d = self.Deferred();
+		        options = extend({
+		            await : 5000
+		        }, options || {});
+		
+		        // Create the id here so we can start listening for the reply before sending the message
+		        _messageId++;
+		        options.messageId =  name + "://await" + _messageIdPrefix + _messageId;
+		
+		        on(options.messageId + "_response", function(r,e,f) {
+		            //console.warn("onresponse", r,e,f);
+		            var responseData = [];
+		            for (var i=0; i < r.response.length; i++) {
+		                if (typeof r.response[i] === "string") {
+		                     responseData.push(r.response[i]);
+		                } else if (r.response[i].data ) {
+		                    responseData.push(r.response[i].data );
+		                }
+		            }
+		
+		            var ddd = {
+		                messageEvent : f,
+		                message : e
+		            };
+		
+		            if (r.type === "fail") {
+		                d.rejectWith(ddd, [responseData.length == 1 ? responseData[0] : responseData] );
+		            } else {
+		                d.resolveWith(ddd, [responseData.length == 1 ? responseData[0] : responseData] );
+		            }
+		        });
+		        var msg = send(name, data, options, targetWindow, asDialogId);
+		        return d.promise();
+		    }
+		
+		    function setDialogrId(id) {
+		    //    console.warn("SETDALOGRID", eventingDialogId, id);
+		        _boundDialogId = id;
+		    }
+		
+		    function setTargetWindow(targetWin) {
+		        _targetWindow = targetWin;
+		    }
+		
+		    function setEventingTargetWindow(targetWin) {
+		        _eventingTargetWindow = targetWin;
+		    }
+		
+		    function weAreToString() {
+		
+		        if (!_weAre) return "UNKNOWN";
+		        if (_weAre.father && _weAre.mother) 
+		            return "fa+mo to " + _weAre.fatherTo;
+		
+		        if (_weAre.father ) 
+		            return "father to " + _weAre.fatherTo;
+		
+		        if (_weAre.mother ) 
+		            return "mother to " + _weAre.motherTo;
+		
+		        if (_weAre.child ) 
+		            return (!_weAre.fatherIdentified ? ' fatherless ' : '') + "child " + _weAre.childId;
+		
+		        return _weAre.toString();
+		    }
+		
+		    function setNamedTarget(name, namedTargetWindiw) {
+		        if (name == "father") _weAre.fatherIdentified = true;
+		        _namedTargets[name] = namedTargetWindiw;
+		    }
+		
+		    return {
+		        send : send,
+		        await : sendAndWait,
+		        setDialogrId : setDialogrId,
+		        setTargetWindow : setTargetWindow,
+		        setEventingTargetWindow : setEventingTargetWindow,
+		        setNamedTarget : setNamedTarget,
+		        on : on,
+		        off : off,
+		        handleMessage : messageHandler,
+		        $$eventHandlers : _eventHandlers,
+		        setIdentity : function(val) {
+		            _weAre = val;
+		        }
+		    };
+		
+		}
+		;
 
     attachEventHandler(win, 'keydown', function(e) {
-        if (e.keyCode === 27 && dialogElement != null) {
+        if (e.keyCode === 27 && dialogElement !== null) {
             close();
         }
     });
@@ -391,8 +688,8 @@
     function open(optionsOrUrl, options, id, openingDialogId) {
         
         var dialogInstance,
-            openDialogs = _dialogs.slice(0),
-            options = options || {};
+            openDialogs = _dialogs.slice(0);
+				options = options || {};
         if (_dialogContext) {
             dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, true);
 
@@ -426,56 +723,136 @@
 
     }
 
+    /*
+
+        General utility functions
+
+    */
+
     function isUndefined(obj) {
+
         return typeof obj === "undefined";
+
     }
 
+    
+
+    
 
     function attachEventHandler(object, type, callback) {
-        if (object == null || isUndefined(object)) return;
+
+        if (object === null || isUndefined(object)) return;
+
         if (object.addEventListener) {
+
             object.addEventListener(type, callback, false);
+
         } else if (object.attachEvent) {
+
             object.attachEvent("on" + type, callback);
+
         } else {
+
             object["on"+type] = callback;
+
         }
+
     }
+
+    
 
     function removeEventHandler(object, type, callback) {
-        if (object == null || isUndefined(object)) return;
+
+        if (object === null || isUndefined(object)) return;
+
         if (object.removeEventListener) {
+
             object.removeEventListener(type, callback, false);
+
         } else if (object.detachEvent) {
+
             object.detachEvent("on" + type, callback);
+
         } else {
+
             object["on"+type] = null;
+
         }
+
     }
+
+    
 
     function parseInteger(v) {
+
         var val = parseInt(v, 10);
+
         if (isNaN(val)) return 0;
+
         return val;
+
     }
+
+    
 
     function getOuterSizes(d, styleName) {
+
         return {
+
             t: parseInteger(getStyle(d, styleName + '-top')),
+
             r: parseInteger(getStyle(d, styleName + '-right')),
+
             b: parseInteger(getStyle(d, styleName + '-bottom')),
+
             l: parseInteger(getStyle(d, styleName + '-left'))
+
         };
+
     }
+
+    
 
     function getStyle(x,styleProp) {
+
+        var y;
+
         if (window.getComputedStyle)
-            var y = document.defaultView.getComputedStyle(x,null).getPropertyValue(styleProp);
+
+            y = document.defaultView.getComputedStyle(x,null).getPropertyValue(styleProp);
+
         else if (x.currentStyle)
-            var y = x.currentStyle[styleProp];
+
+            y = x.currentStyle[styleProp];
+
         return y;
+
     }
 
+    
+
+    function hashCode(str) {
+
+        var hash = 0, i, chr, len;
+
+        if (str.length === 0) return hash;
+
+        for (i = 0, len = str.length; i < len; i++) {
+
+            chr   = str.charCodeAt(i);
+
+            hash  = ((hash << 5) - hash) + chr;
+
+            hash |= 0; // Convert to 32bit integer
+
+        }
+
+    
+
+        return hash < 0 ? hash * -1 : hash;
+
+    }
+ 
     //
     // We always want the width and height in pixels
     //
@@ -483,8 +860,8 @@
         options.width = normalizeSize(options.width, window.innerWidth);
         options.height = normalizeSize(options.height, window.innerHeight);
 
-        options.left =  Math.ceil( (window.innerWidth/2) - (parseInt(options.width,10) / 2)) + 'px'
-        options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + 'px'
+        options.left =  Math.ceil( (window.innerWidth/2) - (parseInt(options.width,10) / 2)) + 'px';
+        options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + 'px';
 
         return options;
     }
@@ -497,9 +874,9 @@
         }
 
         if (typeof sizeValue === "string") {
-            if (match = sizeValue.match(/^(\d+)\%$/)) {
+            if ( (match = sizeValue.match(/^(\d+)\%$/))) {
                 sizeValue = Math.ceil((match[1] / 100) * containerSize) + 'px';
-            } else if (match = sizeValue.match(/^(\d+)$/)) {
+            } else if ( (match = sizeValue.match(/^(\d+)$/))) {
                 sizeValue = parseInt(match[1], 10) + 'px';
             }
         } else if (typeof sizeValue === "number") {
@@ -509,18 +886,6 @@
         }
         return sizeValue;
     }
-
-    function hashCode(str) {
-      var hash = 0, i, chr, len;
-      if (str.length === 0) return hash;
-      for (i = 0, len = str.length; i < len; i++) {
-        chr   = str.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-      }
-
-      return hash < 0 ? hash * -1 : hash;
-    };
 
 
 
@@ -538,8 +903,8 @@
         // We should have the dialog id via the querystring
         var u = parseUrl(win.location.href),
             dialogrIdParameter = null;
-        if (u.params['_dialogrId']) {
-            dialogrIdParameter = u.params['_dialogrId'];
+        if (u.params._dialogrId) {
+            dialogrIdParameter = u.params._dialogrId;
         } else {
             console.error("[dialogr] _dialogrId parameter is missing. Can not create dialog context.");
             return;
@@ -591,54 +956,54 @@
         this.$$w = openingWindow;
         //this.$$el = _elements;
 
-        this.enable = function(button) {}
+        this.enable = function(button) {};
         this.disable = function(button) {
             _context.trigger('dialogr.disable-button', button);
-        }
-        this.addClass = function(elementName, className) {}
-        this.removeClass = function(elementName, className) {}
-        this.css = function(elementName, styleName, styleValue) {}
-        this.attr = function(elementName, key, value) {}
+        };
+        this.addClass = function(elementName, className) {};
+        this.removeClass = function(elementName, className) {};
+        this.css = function(elementName, styleName, styleValue) {};
+        this.attr = function(elementName, key, value) {};
         this.text = function(elementName, newValue) {
             _context.trigger('dialogr.set-text', {
                 element : elementName, 
                 value : newValue
             });
-        }
+        };
         this.html = function(elementName, newValue) {
             _context.trigger('dialogr.set-html', {
                 element : elementName, 
                 value : newValue
             });
-        }
+        };
 
         this.on = function(name, callback) {
             _eventing.on(name, callback);
             return _context;
-        }
+        };
         this.invoke = function(name, data) {
             return _eventing.await(name, data, null, openingWindow);
-        }
+        };
         
         this.trigger = function(name, data) {
             return _eventing.send(name, data, null, openingWindow);
-        }
+        };
 
         this.close = function() {
             _eventing.send('dialogr.close');
-        }
+        };
         this.block = function() {
             _eventing.send('dialogr.block');
-        }
+        };
         this.unblock = function() {
             _eventing.send('dialogr.unblock');
-        }
+        };
         this.resolve = function(data) {
             _eventing.send('dialogr.resolve', data);
-        }
+        };
         this.reject = function(data){
             _eventing.send('dialogr.reject', data);
-        }
+        };
         this.param = {};
     }
 
@@ -674,11 +1039,11 @@
 
         function calculateSize() {
 
-                cpadding = getOuterSizes(elm, "padding"), 
-                cborders = getOuterSizes(elm, "border-width"),
-                cmargins = getOuterSizes(elm, "margin"),
-                borderBox = getStyle(elm, "box-sizing") === "border-box";
-                visible = getStyle(elm, "display") === "block";
+                cpadding = getOuterSizes(elm, "padding");
+                cborders = getOuterSizes(elm, "border-width");
+                cmargins = getOuterSizes(elm, "margin");
+                borderBox = (getStyle(elm, "box-sizing") === "border-box");
+                visible = (getStyle(elm, "display") === "block");
                 
 
             if (!borderBox) {
@@ -693,7 +1058,7 @@
                 h = parseInteger(getStyle(elm, 'height'));
 
 
-                innerW = w - cpadding.l - cpadding.r - cmargins.l - cmargins.r - cborders.l - cborders.r,
+                innerW = w - cpadding.l - cpadding.r - cmargins.l - cmargins.r - cborders.l - cborders.r;
                 innerH = h - cpadding.t - cpadding.b - cmargins.t - cmargins.b - cborders.t - cborders.b;
             }
 
@@ -738,7 +1103,7 @@
                 newLeft = parseInteger(newLeft) ;
                 elm.style.left = newLeft + 'px';
             }
-        }
+        };
     }
 
     function trigger(dialogId, name, data) {
@@ -860,244 +1225,7 @@
 
     var _dialogs = [];
 
-    // The actual instance of the dialog
-    function DialogrDialog(optionsOrUrl, options, internalOptions, idFromDialogEvent, openerDialogId) {
-
-        var _dialogOptions, 
-            _elements = {},
-            _currentDialog = this;
-
-            var _weAre = null;
-
-       
-        if( typeof optionsOrUrl === "string") {
-            if (isUndefined(options) || typeof options !== "object") {
-                options = {};
-            }
-            options.url = optionsOrUrl;
-        } else if (typeof optionsOrUrl === "object") {
-            options = optionsOrUrl;
-        }
-
-        _dialogOptions = extend({}, dialogrDefaults, options);
-        _dialogOptions.maxWidth = normalizeSize(_dialogOptions.maxWidth, window.outerWidth);
-        _dialogOptions.minWidth = normalizeSize(_dialogOptions.minWidth, window.outerWidth);
-
-        if (isUndefined(_dialogOptions.url)) {
-            console.error("[dialogr] No url was given");
-            return;
-        }
-
-        var fakeContext = false;
-
-        if (idFromDialogEvent && idFromDialogEvent !== true) {
-            this.id = idFromDialogEvent;
-
-        } else {
-            dialogId ++;
-            this.id = "d" + uniqid('dlg') +  "_" + dialogId;
-        }
-
-        // Add dialog id to url
-        _dialogOptions.url = setQuerystringValue(_dialogOptions.url, {'_dialogrId' : this.id});
-
-        if (idFromDialogEvent === true) fakeContext = true;    
-
-        // Identify where and who we are? Child? Father? Mother+Father? Mother only?
-        _weAre = { father : false, mother : false, child : false }
-        if (idFromDialogEvent === true) {
-            _weAre.father = true;
-            _weAre.fatherTo = this.id;
-        } else if (!isUndefined(idFromDialogEvent)) {
-            _weAre.mother = true;
-            _weAre.motherTo = this.id;
-        } else {
-            _weAre.mother = true;
-            _weAre.motherTo = this.id;
-            _weAre.father = true;
-            _weAre.fatherTo = this.id;
-        }
-
-        var dialogDeferred = self.Deferred(),
-            _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
-            _eventing.setIdentity(_weAre);
-            
-        
-         if (_weAre.father) {
-            _eventing.on('dialogr.find-father', function(d, msg, msgEvent) {
-                if (_weAre.fatherTo == d.childId) {
-                    _eventing.setNamedTarget('child', msgEvent.source);
-                    _eventing.send("dialogr.i-am-your-father", { "fatherLocation" : win.location.href }, null, msgEvent.source);
-                }
-            }); 
-
-        } else if (_weAre.mother) {
-
-            _eventing.on('dialogr.disable-button', function(buttonName) {
-                if (_elements.buttons[buttonName]) {
-                    _elements.buttons[buttonName].setAttribute('disabled','disabled');
-                }
-            })
-            .on('dialogr.enable-button', function(buttonName) {
-                if (_elements.buttons[buttonName]) {
-                    _elements.buttons[buttonName].removeAttribute('disabled');
-                }
-            })
-            .on('dialogr.set-text', function(e) {
-                if (_elements.buttons[e.element]) {
-                    _elements.buttons[e.element].innerText = e.value;
-                }
-            })
-            .on('dialogr.set-html', function(e) {
-                if (_elements.buttons[e.element]) {
-                    _elements.buttons[e.element].innerHTML = e.value;
-                }
-            })
-        }
-
-        // Event to hook up the dialog window
-        //
-        _eventing.on('dialogr.find-opener', function(data, msg, e) {
-            //_eventing.off('dialogr.find-opener');
-            var deferred = self.Deferred();
-            _eventing.setDialogrId(_currentDialog.id);
-            _eventing.setNamedTarget('dialog', e.source);
-
-            deferred.resolve(extend({
-                openerUrl : window.location.href.toString(),
-                dialogrId : _currentDialog.id,
-                param : _dialogOptions.param
-            }, {
-                opener : openerDialogId
-            }));
-            
-            return deferred.promise();
-        });
-
-        /*_eventing.on('dialogr.ping-your-dialog', function(e) {
-            console.info("OK, attempt to find my dialog...", _currentDialog.id, window.location.href);
-            var t= win.parent;
-            for (var i=0; i < t.window.frames.length; i++) {
-                _eventing.send("dialogr.i-am-your-father", { "n" : "ooo" }, null, t.window.frames[i]);
-            }
-        })*/
-
-        function onResizeEventHandler() {
-            onResize(_elements, _dialogOptions);
-        }
-
-        _eventing.on('dialogr.reject', function(d) {
-            dialogDeferred.reject(d);
-            _currentDialog.close();
-        });
-
-        _eventing.on('dialogr.resolve', function(d) {
-            dialogDeferred.resolve(d);
-            //if (idFromDialogEvent) {
-            //    _eventing.send('dialogr.close', null, null, 'eventingTarget', openerDialogId);
-            //} else {
-               _currentDialog.close();
-            //}
-        });
-
-        _eventing.on('dialogr.close', function(d,e,f) {
-          // console.warn("Received close",d,e,f);
-            _currentDialog.close();
-        });
-
-        _eventing.on('dialogr.block', function() {
-            _elements.loaderOverlay.style.visibility = 'visible';
-        });
-
-        _eventing.on('dialogr.unblock', function() {
-            _elements.loaderOverlay.style.visibility = 'hidden';
-            _elements.content.style.visibility = "visible";
-        });
-
-        if ( (!idFromDialogEvent) || (idFromDialogEvent && idFromDialogEvent !== true) ) {
-
-           // console.info("Ok, this new dialog was opened by the dialog with id", openerDialogId);
-
-            
-
-            _eventing.on('dialogr.open', function(d) {
-                var deferred = self.Deferred();
-                var x = dialogr.open(d.optionsOrUrl, d.options, d.newDialogId, d.openerId);
-                deferred.resolve({
-                    dialogrId : d.newDialogId
-                });
-                return deferred.promise();
-            });
-
-             _elements = createDialogElements(this.id, _dialogOptions);
-            _elements.addToDom();
-
-              setTimeout(function() {
-                onResize(_elements, _dialogOptions);
-            }, 5);
-
-            attachEventHandler(window, 'resize', onResizeEventHandler);
-            openedDialog = true;
-
-            _elements.content.setAttribute('src', _dialogOptions.url);
-
-        }
-      
-        this.$$e = _eventing;
-        this.$$el = _elements;
-        this.block = function() {}
-        this.unblock = function() {}
-        this.close = function() {
-            //if (openerDialogId) {
-            //    _eventing.send('dialogr.close');
-           // }
-           if (_weAre.father && !_weAre.mother) {
-            _eventing.send('dialogr.close');
-           } else if (_weAre.mother) {
-               
-               for (var i=0; i < _dialogs.length; i++) {
-                if (_dialogs[i].id == _currentDialog.id) {
-                    _dialogs.splice(i, 1);
-                    break;
-                }
-               }
-               if (_elements && _elements.dialog && _elements.dialog.parentNode && _elements.overlay) {
-                   _elements.dialog.parentNode.removeChild(_elements.dialog);
-                   _elements.overlay.parentNode.removeChild(_elements.overlay);
-               }
-            }
-        }
-        this.always = dialogDeferred.then;
-        this.done = dialogDeferred.done;
-        this.fail = dialogDeferred.fail;
-        this.then = function(cb) {
-            dialogDeferred.then(cb);
-            return _currentDialog;
-        }
-        this.invokeAs = function(name, data, asDialogId) {
-            return _eventing.await(name, data, null, null, asDialogId);
-        }
-        this.triggerAs = function(name, data, asDialogId) {
-            _eventing.send(name, data, null, null, asDialogId);
-        }
-        this.trigger = function(name, data) {
-            _eventing.send(name, data);
-            return _currentDialog;
-        };
-       
-        this.invoke = function(name, data) {
-            return _eventing.await(name, data);
-        };
-
-        this.on = function(name, callback) {
-        //            console.warn(_currentDialog.id, "LISTEN FOR", name);
-            _eventing.on(name, callback);
-            return _currentDialog;
-        };
-
-        _dialogs.push(this);
     
-     }
 
 
     function onResize(elements, dialogOptions) {
@@ -1156,7 +1284,7 @@
 
              if (parseInteger(dialogOptions.maxWidth) > 0 && parseInteger(actualW) > parseInt(dialogOptions.maxWidth)) {
             width = dialogOptions.maxWidth;
-            left =  Math.ceil( (window.innerWidth/2) - (parseInt(width,10) / 2)) + 'px'
+            left =  Math.ceil( (window.innerWidth/2) - (parseInt(width,10) / 2)) + 'px';
             if(getStyle(elements.dialog, "box-sizing") != "border-box") {
                 iw = (parseInteger(width) ) + 'px';
             } else {
@@ -1191,7 +1319,7 @@
             }
         }
 
-        return {w : width, h : height, l: left, t : top, iw : iw}
+        return {w : width, h : height, l: left, t : top, iw : iw};
     }
 
 
@@ -1267,7 +1395,7 @@
         function createButton(buttonName, buttonHtml) {
             var btn = document.createElement('button');
             btn.setAttribute('id', 'button_' + id + '_' + buttonName);
-            btn.setAttribute('onclick', "javascript:dialogr.trigger(\"" + id + "\", \"button_" + buttonName + "\");")
+            btn.setAttribute('onclick', "dialogr.trigger(\"" + id + "\", \"button_" + buttonName + "\");");
             btn.setAttribute('class', "dialogr__button button_" + buttonName);
             btn.innerHTML = buttonHtml;
             return btn;
@@ -1275,20 +1403,22 @@
 
 
         var buttonCount = 0,
-            buttonIds = [];
+            buttonIds = [],
+            btn,
+            key;
 
         if(!isUndefined(dialogOptions.buttons)) {
             if (dialogOptions.buttons.constructor === Array) {
-                for (var i=0; i < dialogOptions.buttons.length; i++) {
-                    var btn = createButton(i, dialogOptions.buttons[i]);
+                for (i=0; i < dialogOptions.buttons.length; i++) {
+                    btn = createButton(i, dialogOptions.buttons[i]);
                     dialogElement__footer.appendChild(btn);
                     dialogElement__buttons["button_" + i] = btn;
                         buttonCount++;
                 }
             } else if (typeof dialogOptions.buttons === "object") {
-                for (var key in dialogOptions.buttons) {
+                for (key in dialogOptions.buttons) {
                     if (dialogOptions.buttons.hasOwnProperty(key)) {
-                        var btn = createButton(key, dialogOptions.buttons[i]);
+                        btn = createButton(key, dialogOptions.buttons[i]);
                         dialogElement__footer.appendChild(btn);
                         dialogElement__buttons["button_" + key] = btn;
                         buttonCount++;
@@ -1297,7 +1427,7 @@
             }
         }
 
-        if ( buttonCount == 0) {
+        if ( buttonCount === 0) {
             dialogElement__footer.style.display = "none";
         }
 
@@ -1334,7 +1464,7 @@
         Array.prototype.slice.call(arguments, 1).forEach(function(source) {
             if (source) {
                 for (var prop in source) {
-                    if (source[prop] === null || typeof source[prop] === "undefined") {
+                    if (source[prop] === null || isUndefined(source[prop])) {
                         delete obj[prop];
                     } else if (source[prop].constructor === Object) {
                         if (!obj[prop] || obj[prop].constructor === Object) {
@@ -1352,307 +1482,7 @@
         return obj;
     }
 
-
-
-    /*! Deferred (https://github.com/warpdesign/deferred-js) */
-    (function(global) {
-        function isArray(arr) {
-            return Object.prototype.toString.call(arr) === '[object Array]';
-        }
-
-        function foreach(arr, handler) {
-            if (isArray(arr)) {
-                for (var i = 0; i < arr.length; i++) {
-                    handler(arr[i]);
-                }
-            }
-            else
-                handler(arr);
-        }
-
-        function D(fn) {
-            var status = 'pending',
-                doneFuncs = [],
-                failFuncs = [],
-                progressFuncs = [],
-                resultArgs = null,
-
-            promise = {
-                done: function() {
-                    for (var i = 0; i < arguments.length; i++) {
-                        // skip any undefined or null arguments
-                        if (!arguments[i]) {
-                            continue;
-                        }
-
-                        if (isArray(arguments[i])) {
-                            var arr = arguments[i];
-                            for (var j = 0; j < arr.length; j++) {
-                                // immediately call the function if the deferred has been resolved
-                                if (status === 'resolved') {
-                                    arr[j].apply(this, resultArgs);
-                                }
-
-                                doneFuncs.push(arr[j]);
-                            }
-                        }
-                        else {
-                            // immediately call the function if the deferred has been resolved
-                            if (status === 'resolved') {
-                                arguments[i].apply(this, resultArgs);
-                            }
-
-                            doneFuncs.push(arguments[i]);
-                        }
-                    }
-                    
-                    return this;
-                },
-
-                fail: function() {
-                    for (var i = 0; i < arguments.length; i++) {
-                        // skip any undefined or null arguments
-                        if (!arguments[i]) {
-                            continue;
-                        }
-
-                        if (isArray(arguments[i])) {
-                            var arr = arguments[i];
-                            for (var j = 0; j < arr.length; j++) {
-                                // immediately call the function if the deferred has been resolved
-                                if (status === 'rejected') {
-                                    arr[j].apply(this, resultArgs);
-                                }
-
-                                failFuncs.push(arr[j]);
-                            }
-                        }
-                        else {
-                            // immediately call the function if the deferred has been resolved
-                            if (status === 'rejected') {
-                                arguments[i].apply(this, resultArgs);
-                            }
-
-                            failFuncs.push(arguments[i]);
-                        }
-                    }
-                    
-                    return this;
-                },
-
-                always: function() {
-                    return this.done.apply(this, arguments).fail.apply(this, arguments);
-                },
-
-                progress: function() {
-                    for (var i = 0; i < arguments.length; i++) {
-                        // skip any undefined or null arguments
-                        if (!arguments[i]) {
-                            continue;
-                        }
-
-                        if (isArray(arguments[i])) {
-                            var arr = arguments[i];
-                            for (var j = 0; j < arr.length; j++) {
-                                // immediately call the function if the deferred has been resolved
-                                if (status === 'pending') {
-                                    progressFuncs.push(arr[j]);
-                                }
-                            }
-                        }
-                        else {
-                            // immediately call the function if the deferred has been resolved
-                            if (status === 'pending') {
-                                progressFuncs.push(arguments[i]);
-                            }
-                        }
-                    }
-                    
-                    return this;
-                },
-
-                then: function() {
-                    // fail callbacks
-                    if (arguments.length > 1 && arguments[1]) {
-                        this.fail(arguments[1]);
-                    }
-
-                    // done callbacks
-                    if (arguments.length > 0 && arguments[0]) {
-                        this.done(arguments[0]);
-                    }
-
-                    // notify callbacks
-                    if (arguments.length > 2 && arguments[2]) {
-                        this.progress(arguments[2]);
-                    }
-                },
-
-                promise: function(obj) {
-                    if (obj == null) {
-                        return promise;
-                    } else {
-                        for (var i in promise) {
-                            obj[i] = promise[i];
-                        }
-                        return obj;
-                    }
-                },
-
-                state: function() {
-                    return status;
-                },
-
-                debug: function() {
-                    console.log('[debug]', doneFuncs, failFuncs, status);
-                },
-
-                isRejected: function() {
-                    return status === 'rejected';
-                },
-
-                isResolved: function() {
-                    return status === 'resolved';
-                },
-
-                pipe: function(done, fail, progress) {
-                    return D(function(def) {
-                        foreach(done, function(func) {
-                            // filter function
-                            if (typeof func === 'function') {
-                                deferred.done(function() {
-                                    var returnval = func.apply(this, arguments);
-                                    // if a new deferred/promise is returned, its state is passed to the current deferred/promise
-                                    if (returnval && typeof returnval === 'function') {
-                                        returnval.promise().then(def.resolve, def.reject, def.notify);
-                                    }
-                                    else {  // if new return val is passed, it is passed to the piped done
-                                        def.resolve(returnval);
-                                    }
-                                });
-                            }
-                            else {
-                                deferred.done(def.resolve);
-                            }
-                        });
-
-                        foreach(fail, function(func) {
-                            if (typeof func === 'function') {
-                                deferred.fail(function() {
-                                    var returnval = func.apply(this, arguments);
-                                    
-                                    if (returnval && typeof returnval === 'function') {
-                                        returnval.promise().then(def.resolve, def.reject, def.notify);
-                                    } else {
-                                        def.reject(returnval);
-                                    }
-                                });
-                            }
-                            else {
-                                deferred.fail(def.reject);
-                            }
-                        });
-                    }).promise();
-                }
-            },
-
-            deferred = {
-                resolveWith: function(context) {
-                    if (status === 'pending') {
-                        status = 'resolved';
-                        var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
-                        for (var i = 0; i < doneFuncs.length; i++) {
-                            doneFuncs[i].apply(context, args);
-                        }
-                    }
-                    return this;
-                },
-
-                rejectWith: function(context) {
-                    if (status === 'pending') {
-                        status = 'rejected';
-                        var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
-                        for (var i = 0; i < failFuncs.length; i++) {
-                            failFuncs[i].apply(context, args);
-                        }
-                    }
-                    return this;
-                },
-
-                notifyWith: function(context) {
-                    if (status === 'pending') {
-                        var args = resultArgs = (arguments.length > 1) ? arguments[1] : [];
-                        for (var i = 0; i < progressFuncs.length; i++) {
-                            progressFuncs[i].apply(context, args);
-                        }
-                    }
-                    return this;
-                },
-
-                resolve: function() {
-                    return this.resolveWith(this, arguments);
-                },
-
-                reject: function() {
-                    return this.rejectWith(this, arguments);
-                },
-
-                notify: function() {
-                    return this.notifyWith(this, arguments);
-                }
-            }
-
-            var obj = promise.promise(deferred);
-
-        if (fn) {
-            fn.apply(obj, [obj]);
-        }
-
-        return obj;
-    }
-
-    D.when = function() {
-        if (arguments.length < 2) {
-            var obj = arguments.length ? arguments[0] : undefined;
-            if (obj && (typeof obj.isResolved === 'function' && typeof obj.isRejected === 'function')) {
-                return obj.promise();           
-            }
-            else {
-                return D().resolve(obj).promise();
-            }
-        }
-        else {
-            return (function(args){
-                var df = D(),
-                    size = args.length,
-                    done = 0,
-                    rp = new Array(size);   // resolve params: params of each resolve, we need to track down them to be able to pass them in the correct order if the master needs to be resolved
-
-                for (var i = 0; i < args.length; i++) {
-                    (function(j) {
-                        var obj = null;
-                        
-                        if (args[j].done) {
-                            args[j].done(function() { rp[j] = (arguments.length < 2) ? arguments[0] : arguments; if (++done == size) { df.resolve.apply(df, rp); }})
-                            .fail(function() { df.reject(arguments); });
-                        } else {
-                            obj = args[j];
-                            args[j] = new Deferred();
-                            
-                            args[j].done(function() { rp[j] = (arguments.length < 2) ? arguments[0] : arguments; if (++done == size) { df.resolve.apply(df, rp); }})
-                            .fail(function() { df.reject(arguments); }).resolve(obj);
-                        }
-                    })(i);
-                }
-
-                return df.promise();
-            })(arguments);
-        }
-    }
-
-    global.Deferred = D;
-})(this);
-
+    
     winloadDeferred = this.Deferred();
 
     if (document.readyState === "complete") {
@@ -1662,10 +1492,4 @@
             winloadDeferred.resolve();
         });
     }
-
-    
-    win.dialogr = Dialogr();
-
-
-
-}(window));
+win.dialogr = Dialogr(); }(window));
