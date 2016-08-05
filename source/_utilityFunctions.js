@@ -5,6 +5,11 @@ function isUndefined(obj) {
     return typeof obj === "undefined";
 }
 
+function uniqid(prefix) {
+    prefix = prefix || "u";
+    _uniqidix ++;
+    return ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).slice(-4) + _uniqidix;
+}
 
 function attachEventHandler(object, type, callback) {
     if (object === null || isUndefined(object)) return;

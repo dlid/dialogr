@@ -5,7 +5,8 @@
 * License: MIT
  */
 
-(function(win) {    var dialogrDefaults = {
+(function(win) {
+    var dialogrDefaults = {
         zIndex : 1500,
         url : null,
         className : 'dialogr',

@@ -20,7 +20,7 @@ var gulp = require('gulp'),
  		"* License: "+package.license+"\n" +
 		" */\n\n";
 
-        return [headerComment + '(function(win) {', "win.dialogr = Dialogr(); }(window));"];
+        return [headerComment + '(function(win) {\n', "win.dialogr = Dialogr(); }(window));\n"];
     },
     to_inject_min = function()
     {

@@ -30,18 +30,10 @@
     dialogId = null,
     self = this;
 
-    var uniqnames = ["Bames", "Lilleskutt", "Skalman", "Vargen", "Teddy", "Jansson", "Husmusen"];
-
     /*! Deferred (https://github.com/warpdesign/deferred-js) */
     //=require ../build/_deferred_temp.js
 
     
-    function uniqid(prefix) {
-        prefix = prefix || "u";
-        _uniqidix ++;
-        return ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).slice(-4) + _uniqidix;
-    }
-
     var EventingManager = 
 		//=require _eventingManager.js 
 		;
