@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script src="dialogr.js"></script>
+	<script src="../build/dialogr.js"></script>
 	<script>
 		dialogr.ready().done(function(dialogContext) {
+
+			//dialogContext.buttons()
 
 			if (dialogContext.param.name) {
 				document.getElementById('name').value = dialogContext.param.name;

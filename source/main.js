@@ -32,7 +32,7 @@
 
     /*! Deferred (https://github.com/warpdesign/deferred-js) */
     //=require ../build/_deferred_temp.js
-
+    //=require _dialogrDialog.js
     
     var EventingManager = 
 		//=require _eventingManager.js 
@@ -649,8 +649,8 @@
             } else if (typeof dialogOptions.buttons === "object") {
                 for (key in dialogOptions.buttons) {
                     if (dialogOptions.buttons.hasOwnProperty(key)) {
-                        btn = createButton(key, dialogOptions.buttons[i]);
-                        dialogElement__footer.appendChild(btn);
+                        btn = createButton(key, dialogOptions.buttons[key].text);
+                        dialogElement__footer.appendChild(btn); 
                         dialogElement__buttons["button_" + key] = btn;
                         buttonCount++;
                     }

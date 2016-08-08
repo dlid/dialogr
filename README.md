@@ -1,5 +1,7 @@
 # Dialogr
 
+https://docs.dlid.se/dialogr
+
 > I wanted a easy to use, no-fuzz stand-alone dialog library that I could just drop into any project and start using
 
 Dialogr is a small self-dependant dialog library to easily open Iframe dialogs and communicating with the opening window.
@@ -29,14 +31,15 @@ Download and extract the [latest pre-built release](https://github.com/dlid/dial
 Install the devDependencies and start the server.
 
 ```sh
-$ cd dillinger
+$ cd dialogr
 $ npm install -d
+$ npm install gulp -g
 ```
 
 ### Todos
 
- - Modulize source code
- - Improve Gulp scripts
+ - Utilize Gulp better
+ - Split code into more managable modules
  - Ensure snap breakpoint works (height and width)
  - Documentation
 

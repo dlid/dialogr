@@ -1,6 +1,7 @@
 /*
  The EventingManager will send and receive data between the dialogs (child), its opener (father) and the first opener (mother).
 */
+
 function EventingManager(eventingDialogId, targetWindow, isDialogContext, openingDialogId) {
     var _targetWindow = targetWindow || null,
         _eventingTargetWindow = null,
@@ -15,7 +16,7 @@ function EventingManager(eventingDialogId, targetWindow, isDialogContext, openin
             'father' : targetWindow || null,
             'child' : null
         };
-
+ 
     function reset() {
         _messageIdPrefix = uniqid('m');
         _eventHandlers = {};
