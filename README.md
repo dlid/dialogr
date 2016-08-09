@@ -32,6 +32,12 @@ $ npm install gulp -g
 $ npm install -d
 ```
 
+To build the scripts, run the default Gulp task.
+
+```sh
+$ gulp
+```
+
 ### Todos
 
  - Ensure snap breakpoint works (height and width)
