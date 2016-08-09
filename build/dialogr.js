@@ -988,9 +988,6 @@
           contentElement.setWidth( dialogSize.innerWidth() );
           var x =  dialogSize.innerHeight() - footerElement.height() - headerElement.height();
 
-         // alert( getStyle(dialogElement__content, 'visibility') );
-
-  //console.warn("content size", contentElement.height());
           contentElement.setHeight( dialogSize.innerHeight() - footerElement.height() - headerElement.height()  );
           footerElement.setTop( contentElement.height() + headerElement.height() );
           footerElement.setWidth( dialogSize.innerWidth() );
@@ -1029,7 +1026,13 @@
               height = (parseInteger(height) - padding.t - padding.b - borders.t - borders.b - margins.t - margins.b) + STYLE_UNIT_PIXELS;
           }
 
-          if ( parseInteger(actualW) > window.innerWidth || (parseInteger(dialogOptions.minWidth) > 0 && parseInteger(window.innerWidth) < parseInteger(dialogOptions.minWidth))) {
+
+
+          if ( parseInteger(actualW) > window.innerWidth 
+              || parseInteger(actualH) > window.innerHeight 
+              || (parseInteger(dialogOptions.minWidth) > 0 && parseInteger(window.innerWidth) < parseInteger(dialogOptions.minWidth))
+              || (parseInteger(dialogOptions.minHeight) > 0 && parseInteger(window.innerHeight) < parseInteger(dialogOptions.minHeight))
+              ) {
               width = window.innerWidth + STYLE_UNIT_PIXELS;
               height = window.innerHeight + STYLE_UNIT_PIXELS;
               left = 0;
