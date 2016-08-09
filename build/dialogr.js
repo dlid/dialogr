@@ -1086,7 +1086,7 @@
               height : '100%',
               top : 0,
               left : 0,
-              zIndex : getStyle(dialogElement, 'zIndex') - 10
+              zIndex : dialogElement.style.zIndex - 10
           }), {
               "data-dialogr-id" : id,
               "class" : className + "__overlay"
