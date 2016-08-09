@@ -2,14 +2,13 @@
  The EventingManager will send and receive data between the dialogs (child), its opener (father) and the first opener (mother).
 */
 
-function EventingManager(eventingDialogId, targetWindow, isDialogContext, openingDialogId) {
+var EventingManager = function EventingManager(eventingDialogId, targetWindow, isDialogContext, openingDialogId) {
     var _targetWindow = targetWindow || null,
         _eventingTargetWindow = null,
         _messageId = 0,
         _messageIdPrefix = uniqid('m'),
         _eventHandlers = {},
         _boundDialogId = null,
-        _direction = "",
         _weAre = null,
         _namedTargets = {
             'mother' : targetWindow || null,
@@ -62,11 +61,7 @@ function EventingManager(eventingDialogId, targetWindow, isDialogContext, openin
             }
         }
 
-       // console.warn("{"+weAreToString()+"} SEND '"+name+"' to", sendToTargetWindow);
-
-
          var message = {
-            direction : _direction,
             source : 'dialogr',
             messageType : name,
             messageData : data,
@@ -76,20 +71,6 @@ function EventingManager(eventingDialogId, targetWindow, isDialogContext, openin
             fromLocation : win.location.href
         };
     
-        /*var targetName = (!isDialogContext ? (_boundDialogId ? _boundDialogId : 'NONAME') : 'ROOT');
-        
-         if (_eventingTargetWindow) {
-            var toMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock']; 
-            if ( toMother.indexOf(message.messageType) === -1 ) {
-                targetWindow = _eventingTargetWindow;
-                targetName = "father";
-            } else {
-                targetName = "mother";
-            }
-        }*/
-
-//            console.info('[' + weAreToString() + ']=>[' + sendToTargetWindow + "]", name, message, window.location.href);
-
         var resolvedTargetWindow = customTargetWindow ? targetWindow : _namedTargets[sendToTargetWindow];
         if (typeof resolvedTargetWindow === "undefined" || resolvedTargetWindow === null) {
             console.error("Target window was null or undefined", sendToTargetWindow);
@@ -100,30 +81,24 @@ function EventingManager(eventingDialogId, targetWindow, isDialogContext, openin
 
     }
 
-    if (targetWindow === null) {
-        _direction = "opener=>dialog";
-    } else {
-        _direction = "dialog=>opener";
+    function messageHandler(e) {
+    if (e.source == window) {
+    return;
     }
 
-    function messageHandler(e) {
-        if (e.source == window) {
-            return;
-        }
+function callbackReady(data) {
+    n++;
+    if (data.type === "fail") isSuccess = false;
 
-				function callbackReady(data) {
-            n++;
-            if (data.type === "fail") isSuccess = false;
-
-            responses.push(data);
-            if (n === _boundEventHandlers.length) {
-                clearTimeout(timer);
-                send(o.messageId + "_response", {
-                    type : isSuccess ? "success" : "fail",
-                    response : responses
-                }, null, e.source);
-            }
-        }
+    responses.push(data);
+    if (n === _boundEventHandlers.length) {
+        clearTimeout(timer);
+        send(o.messageId + "_response", {
+            type : isSuccess ? "success" : "fail",
+            response : responses
+        }, null, e.source);
+    }
+}
 
         function eventHandlerReady(r) {
               if (!timer) return;
@@ -329,4 +304,4 @@ function EventingManager(eventingDialogId, targetWindow, isDialogContext, openin
         }
     };
 
-}
+};

@@ -1,39 +1,33 @@
 var gulp = require('gulp'),
-		concat = require('gulp-concat'),
-		rename = require('gulp-rename'),
-		uglify = require('gulp-uglify'),
-		include_file = require('gulp-include'),
-		jshint = require('gulp-jshint'),
-		replace = require('gulp-replace')
-    	inject = require('gulp-inject-string'),
-    	fs = require('fs'),
-    	package = JSON.parse(fs.readFileSync('./package.json')),
-    	webPage = package.homepage ? package.homepage : "";
+  concat = require('gulp-concat'),
+  rename = require('gulp-rename'),
+  uglify = require('gulp-uglify'),
+  jshint = require('gulp-jshint'),
+  replace = require('gulp-replace')
+  inject = require('gulp-inject-string'),
+  indent = require("gulp-indent"),
+  fs = require('fs'),
+  package = JSON.parse(fs.readFileSync('./package.json')),
+  webPage = package.homepage ? package.homepage : "";
 
 
  var to_inject = function()
     {
-    	var headerComment = "/*global window, document */\n" +
-		"/**\n" +
-		" * " + package.name + " v" + package.version + "\n"+
-		" * © 2016 " + package.author + ". " + webPage +"\n" +
- 		"* License: "+package.license+"\n" +
-		" */\n\n";
-
-        return [headerComment + '(function(win) {\n', "win.dialogr = Dialogr(); }(window));\n"];
-    },
-    to_inject_min = function()
-    {
-    	var headerComment = "/*! " + package.name + " v" + package.version + " © 2016 " + package.author + " ("+package.license+" license, "+webPage+")*/\n";
-
-        return [headerComment, ""];
+    	var headerComment = "/*! " + package.name 
+      + " v" + package.version + " © 2016 " + package.author 
+      + ". " + webPage
+   		+ " License: "+package.license 
+  		+ " */\n";
+      return [headerComment + '(function(win) {\n', "win.dialogr = Dialogr();\n}(window));\n"];
     }
 
 // JSHint for separate files
 gulp.task('hint', function() {
 	 return gulp.src([
-      		'source/_utilityFunctions.js',
-      		'source/_eventingManager.js',
+          'source/variables',
+          'build/_deferred_temp.js',
+      		'source/utilityFunctions.js',
+      		'source/EventingManager.js',
       		'source/main.js',
 		])
 	 .pipe(jshint())
@@ -53,29 +47,67 @@ gulp.task('update-deferred-js', function() {
 	 .pipe(gulp.dest('build'))
 });
 
+function rip(r) {
 
+}
 
 
 // Concatenate JS Files
 gulp.task('scripts', function() {
     return gulp.src([
-      		'source/main.js'
+          'source/Variables.js', 
+          'build/_deferred_temp.js',
+          'source/UtilityFunctions.js',
+          'source/DOMFunctions.js',
+          //d'source/Draggable.js',
+          'source/EventingManager.js',
+          'source/DialogSizeFunctions.js',
+          'source/DialogrDialog.js',
+          'source/DialogContext.js',
+          'source/Dialogr.js'
       		])
-    	.pipe(include_file())
+      .pipe(concat('dialogr.js'))
     	.pipe(inject.wrap(to_inject()[0], to_inject()[1]))
+
+      // Shorten some strings for a smaller minified file
+      // Replace some long internal messages to something shorter
+      .pipe(replace("'dialogr.set-text'", "'$a'"))
+      .pipe(replace("'dialogr.block'", "'$b'"))
+      .pipe(replace("'dialogr.close'", "'$c'"))
+      .pipe(replace("'dialogr.reject'", "'$e'"))
+      .pipe(replace("'dialogr.find-father'", "'$f'"))
+      .pipe(replace("'dialogr.set-html'", "'$g'"))
+      .pipe(replace("'dialogr.disable-button'", "'$h'"))
+      .pipe(replace("'dialogr.enable-button'", "'$i'"))
+      .pipe(replace("'dialogr.resolve'", "'$j'"))
+      .pipe(replace("'dialogr.i-am-your-father'", "'$k'"))
+      .pipe(replace("'dialogr.buttons'", "'$l'"))
+      .pipe(replace("'dialogr.unblock'", "'$m'"))
+      .pipe(replace("'dialogr.open'", "'$n'"))
+      .pipe(replace("'dialogr.find-opener'", "'$o'"))
+
+
+      // Replace some long variable names with shorter values
+      .pipe(replace("dialogElementOverlay_r", 'o'))
+      .pipe(replace("dialogElementLoaderOverlay_r", 'p'))
+
     	.pipe(jshint())
     	.pipe(jshint.reporter('default'))
-      .pipe(concat('dialogr.js'))
+      .pipe(indent({
+          tabs:false,
+          amount:2
+      }))
       .pipe(gulp.dest('build'))
 
       .pipe(rename({suffix: '.min'}))
       .pipe(uglify({
+        preserveComments : 'license',
 				  beautify: true,
 				  comments: true,
 				  sourceMap: false,
 				  mangle: true
 				}))
-      .pipe(inject.wrap(to_inject_min()[0], to_inject()[1]))
+      //.pipe(inject.wrap(to_inject_min()[0], to_inject()[1]))
       .pipe(gulp.dest('build'));
 });
 

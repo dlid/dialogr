@@ -11,7 +11,7 @@ Dialogr features:
   - Promises and Web Communicate API to communicate between opener and dialog
 
 ### Version
-0.1.1
+0.0.8
 
 ### Tech
 
@@ -20,27 +20,24 @@ The following external modules are included and subject to its own license.
 * [deferred-js] - A light standalone implementation of promises
 * [Gulp] - The streaming build system
 
-
-And of course Dillinger itself is open source with a [public repository][dill]
- on GitHub.
-
 ### Installation
 
-Download and extract the [latest pre-built release](https://github.com/dlid/dialogr/releases).
+Make sure to download and extract the [latest pre-built release](https://github.com/dlid/dialogr/releases). If you do not download a tagged release you may get code that is not yet fully tested.
 
 Install the devDependencies and start the server.
 
 ```sh
 $ cd dialogr
-$ npm install -d
 $ npm install gulp -g
+$ npm install -d
 ```
 
 ### Todos
 
+ - Ensure snap breakpoint works (height and width)
+ - Ensure buttons can be created/replaced from Dialog Context
  - Utilize Gulp better
  - Split code into more managable modules
- - Ensure snap breakpoint works (height and width)
  - Documentation
 
 License

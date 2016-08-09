@@ -65,7 +65,7 @@
             _eventing.on('dialogr.find-father', function(d, msg, msgEvent) {
                 if (_weAre.fatherTo == d.childId) {
                     _eventing.setNamedTarget('child', msgEvent.source);
-                    _eventing.send("dialogr.i-am-your-father", { "fatherLocation" : win.location.href }, null, msgEvent.source);
+                    _eventing.send('dialogr.i-am-your-father', { "fatherLocation" : win.location.href }, null, msgEvent.source);
                 }
             }); 
 
@@ -87,6 +87,10 @@
                 }
             })
             .on('dialogr.set-html', function(e) {
+                if (_elements.buttons[e.element]) {
+                    _elements.buttons[e.element].innerHTML = e.value;
+                }
+            }).on('dialogr.buttons', function(e) {
                 if (_elements.buttons[e.element]) {
                     _elements.buttons[e.element].innerHTML = e.value;
                 }
@@ -112,14 +116,6 @@
             return deferred.promise();
         });
 
-        /*_eventing.on('dialogr.ping-your-dialog', function(e) {
-            console.info("OK, attempt to find my dialog...", _currentDialog.id, window.location.href);
-            var t= win.parent;
-            for (var i=0; i < t.window.frames.length; i++) {
-                _eventing.send("dialogr.i-am-your-father", { "n" : "ooo" }, null, t.window.frames[i]);
-            }
-        })*/
-
         function onResizeEventHandler() {
             onResize(_elements, _dialogOptions);
         }
@@ -144,19 +140,15 @@
         });
 
         _eventing.on('dialogr.block', function() {
-            _elements.loaderOverlay.style.visibility = 'visible';
+            _elements.dialogElementLoaderOverlay_r.style.visibility = 'visible';
         });
 
         _eventing.on('dialogr.unblock', function() {
-            _elements.loaderOverlay.style.visibility = 'hidden';
+            _elements.dialogElementLoaderOverlay_r.style.visibility = 'hidden';
             _elements.content.style.visibility = "visible";
         });
 
         if ( (!idFromDialogEvent) || (idFromDialogEvent && idFromDialogEvent !== true) ) {
-
-           // console.info("Ok, this new dialog was opened by the dialog with id", openerDialogId);
-
-            
 
             _eventing.on('dialogr.open', function(d) {
                 var deferred = self.Deferred();
@@ -167,7 +159,7 @@
                 return deferred.promise();
             });
 
-             _elements = createDialogElements(this.id, _dialogOptions);
+            _elements = createDialogElements(this.id, _dialogOptions);
             _elements.addToDom();
 
               setTimeout(function() {
@@ -199,9 +191,9 @@
                     break;
                 }
                }
-               if (_elements && _elements.dialog && _elements.dialog.parentNode && _elements.overlay) {
+               if (_elements && _elements.dialog && _elements.dialog.parentNode && _elements.dialogElementOverlay_r) {
                    _elements.dialog.parentNode.removeChild(_elements.dialog);
-                   _elements.overlay.parentNode.removeChild(_elements.overlay);
+                   _elements.dialogElementOverlay_r.parentNode.removeChild(_elements.dialogElementOverlay_r);
                }
             }
         };

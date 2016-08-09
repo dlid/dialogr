@@ -2,7 +2,7 @@
   "name": "dialogr",
   "version": "0.0.8",
   "description": "Administrator Dialog JavaScript Library",
-  "homepage" : "https://docs.dlid.se/dialogr",
+  "homepage": "https://docs.dlid.se/dialogr",
   "main": "dialogr.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,7 +25,7 @@
     "deferred-js": "^1.0.2",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.0",
-    "gulp-include": "^2.3.0",
+    "gulp-indent": "^1.0.1",
     "gulp-inject-string": "^1.1.0",
     "gulp-jshint": "^2.0.1",
     "gulp-rename": "^1.2.2",
