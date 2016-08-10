@@ -12,8 +12,9 @@
 	function newDemo() {
 
 		dialogr.open('frame_content.html', {
-			width : 500, height : 105,
-			param : { name : name }
+			width : 300, height : 100,
+			param : { name : name },
+			buttons : ["ost", "boll"]
 		})
 		.done(function(resolvedNameFromDialog) {
 			name = resolvedNameFromDialog;
@@ -31,7 +32,8 @@
 			//buttons : ["hej", "ost", "lakrits"]
 			className : 'dialogr2',
 			width : '600px',
-			height : '480px',
+			height: 400,
+			minHeight : '280px',
 			maxWidth : 400,
 			title : "Profile",
 			buttons : {

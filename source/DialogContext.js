@@ -1,4 +1,4 @@
-function DialogContext(openingWindow, successCallback, failCallback) {
+function DialogContext(openingWindow, successCallback, failCallback, options) {
     var _eventing = new EventingManager(null, openingWindow, true),
         _context = this;  
 
@@ -17,7 +17,8 @@ function DialogContext(openingWindow, successCallback, failCallback) {
     // Find the opening window.
     _eventing.await('dialogr.find-opener', {
         dialogUrl : window.location.toString(),
-        id : dialogrIdParameter
+        id : dialogrIdParameter,
+        options : options
     }, openingWindow).then(function(data) {
         var weAre = {
             child : true,

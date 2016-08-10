@@ -3,9 +3,8 @@
 
         var _dialogOptions, 
             _elements = {},
-            _currentDialog = this;
-
-            var _weAre = null;
+            _currentDialog = this,
+            _weAre = null;
 
        
         if( typeof optionsOrUrl === "string") {
@@ -56,10 +55,13 @@
             _weAre.fatherTo = this.id;
         }
 
+        _dialogOptions.$r = _weAre;
+
         var dialogDeferred = self.Deferred(),
             _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
             _eventing.setIdentity(_weAre);
             
+        console.warn(_dialogOptions);
         
          if (_weAre.father) {
             _eventing.on('dialogr.find-father', function(d, msg, msgEvent) {
@@ -101,9 +103,32 @@
         //
         _eventing.on('dialogr.find-opener', function(data, msg, e) {
             //_eventing.off('dialogr.find-opener');
-            var deferred = self.Deferred();
+            var updateSize = false,
+                deferred = self.Deferred();
             _eventing.setDialogrId(_currentDialog.id);
             _eventing.setNamedTarget('dialog', e.source);
+
+            if (!isUndefined(data.options)) {
+
+                if (data.options.width) {
+                    updateSize = true;
+                    _dialogOptions.width = normalizeSize(data.options.width, window.innerWidth);
+                }
+                if (data.options.height) {
+                    updateSize = true;
+                    _dialogOptions.height = normalizeSize(data.options.height, window.innerHeight);
+                }
+                if (data.options.buttons) {
+                    updateSize = true;
+                    _dialogOptions.buttons = data.options.buttons;
+                    _elements.createButtons(_dialogOptions);
+                }
+
+                if (updateSize) {
+                    onResize(_elements, _dialogOptions);
+                }
+            }
+
 
             deferred.resolve(extend({
                 openerUrl : window.location.href.toString(),

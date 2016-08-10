@@ -237,41 +237,53 @@
                 ), buttonHtml);
         }
 
-        var buttonCount = 0,
-            btn,
-            keys;
 
-        if(!isUndefined(dialogOptions.buttons)) {
-            if (dialogOptions.buttons.constructor === Array) {
-                for (i=0; i < dialogOptions.buttons.length; i++) {
-                    btn = createButton(i, dialogOptions.buttons[i]);
-                    appendChildren(dialogElement__footer, [btn]);
-                    dialogElement__buttons["button_" + i] = btn;
-                    buttonCount++;
+
+         function createButtons(dialogOptions) {
+
+            var buttonCount = 0,
+                btn,
+                keys,
+                existing = dialogElement__footer.querySelectorAll('.dialogr__button');
+
+                for (var i=0; i < existing.length; i++) {
+                    existing[i].parentNode.removeChild(existing[i]);
                 }
-            } else if (typeof dialogOptions.buttons === "object") {
-                keys = getKeys(dialogOptions.buttons)
-                for (i=0; i < keys.length; i++) {
-                    btn = createButton(keys[i], dialogOptions.buttons[keys[i]].text);
-                    appendChildren(dialogElement__footer, [btn]);
-                    dialogElement__buttons["button_" + keys[i]] = btn;
-                    buttonCount++;
+
+                dialogElement__buttons = [];
+        
+            if(!isUndefined(dialogOptions.buttons)) {
+                if (dialogOptions.buttons.constructor === Array) {
+                    for (i=0; i < dialogOptions.buttons.length; i++) {
+                        btn = createButton(i, dialogOptions.buttons[i]);
+                        appendChildren(dialogElement__footer, [btn]);
+                        dialogElement__buttons["button_" + i] = btn;
+                        buttonCount++;
+                    }
+                } else if (typeof dialogOptions.buttons === "object") {
+                    keys = getKeys(dialogOptions.buttons)
+                    for (i=0; i < keys.length; i++) {
+                        btn = createButton(keys[i], dialogOptions.buttons[keys[i]].text);
+                        appendChildren(dialogElement__footer, [btn]);
+                        dialogElement__buttons["button_" + keys[i]] = btn;
+                        buttonCount++;
+                    }
                 }
             }
+
+            setStyle(dialogElement__footer, {display : buttonCount === 0 ? 'none' : 'block'});
+
         }
 
-        if ( buttonCount === 0) {
-            setStyle(dialogElement__footer, {display : 'none'});
-        }
 
         if (!dialogOptions.title) {
-            setStyle(dialogElement__footer, {display : STYLE_DISPLAY_BLOCK});
+            setStyle(dialogElement__header, {display : STYLE_DISPLAY_BLOCK});
         } else {
             setInnerHtml(dialogElement__header, "<a href='javascript:dialogr.close(\"" + id + "\")'>x</a><h1>" + dialogOptions.title + "</h1>");
         }
+        createButtons(dialogOptions);
         appendChildren(dialogElement__loaderOverlay, [dialogElement__loader]);
         appendChildren(dialogElement, [dialogElement__header, dialogElement__content, dialogElement__footer, dialogElement__loaderOverlay]);
-
         return {
             dialogElementOverlay_r : dialogElement__overlay,
             dialogElementLoaderOverlay_r : dialogElement__loaderOverlay,
@@ -281,6 +293,7 @@
             footer : dialogElement__footer,
             content : dialogElement__content,
             buttons : dialogElement__buttons,
+            createButtons : createButtons,
             destroy : function() {},
             addToDom : function() {
                 appendChildren(document.body, [dialogElement, dialogElement__overlay]);

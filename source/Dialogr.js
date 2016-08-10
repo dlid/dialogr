@@ -87,7 +87,7 @@ function open(optionsOrUrl, options, id, openingDialogId) {
     //
     
 
-function ready() {
+function ready(options) {
 
     var deferred = self.Deferred();
     insideDialog = true;
@@ -95,7 +95,7 @@ function ready() {
     winloadDeferred.done(function() {
 
         // Setup the dialog context
-        _dialogContext = new DialogContext(win.parent, contextReadyCallback, contextFailCallback);
+        _dialogContext = new DialogContext(win.parent, contextReadyCallback, contextFailCallback, options);
 
         function contextReadyCallback(r) {
             deferred.resolve(_dialogContext);
@@ -107,8 +107,8 @@ function ready() {
        
 
     });
-
-     return deferred.promise();
+    
+    return deferred.promise();
 
 }
 

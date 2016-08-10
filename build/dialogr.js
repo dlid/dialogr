@@ -4,10 +4,12 @@
           zIndex : 1500,
           url : null,
           className : 'dialogr',
-          width : '90%',
-          height : '60%',
+          width : 300,
+          height : 100,
           title : null,
-          buttons : ["Ok", "Cancel"],
+          breakpointW : 600,  // Always snap to fullscreen if window width <= n
+          breakpointH : 500,  // Always snap to fullscreen if window height <= n
+         // buttons : ["Ok", "Cancel"],
           /*init : function(e) {
               var d = document.createElement('div');
               d.style.backgroundColor = 'yellow';
@@ -18,7 +20,7 @@
           },*/
           param : null,
           maxWidth : null,
-          minWidth : 600
+          minWidth : 0
       },
       _uniqidix = 0,
       openedDialog = null,
@@ -1154,41 +1156,53 @@
                   ), buttonHtml);
           }
 
-          var buttonCount = 0,
-              btn,
-              keys;
 
-          if(!isUndefined(dialogOptions.buttons)) {
-              if (dialogOptions.buttons.constructor === Array) {
-                  for (i=0; i < dialogOptions.buttons.length; i++) {
-                      btn = createButton(i, dialogOptions.buttons[i]);
-                      appendChildren(dialogElement__footer, [btn]);
-                      dialogElement__buttons["button_" + i] = btn;
-                      buttonCount++;
+
+           function createButtons(dialogOptions) {
+
+              var buttonCount = 0,
+                  btn,
+                  keys,
+                  existing = dialogElement__footer.querySelectorAll('.dialogr__button');
+
+                  for (var i=0; i < existing.length; i++) {
+                      existing[i].parentNode.removeChild(existing[i]);
                   }
-              } else if (typeof dialogOptions.buttons === "object") {
-                  keys = getKeys(dialogOptions.buttons)
-                  for (i=0; i < keys.length; i++) {
-                      btn = createButton(keys[i], dialogOptions.buttons[keys[i]].text);
-                      appendChildren(dialogElement__footer, [btn]);
-                      dialogElement__buttons["button_" + keys[i]] = btn;
-                      buttonCount++;
+
+                  dialogElement__buttons = [];
+          
+              if(!isUndefined(dialogOptions.buttons)) {
+                  if (dialogOptions.buttons.constructor === Array) {
+                      for (i=0; i < dialogOptions.buttons.length; i++) {
+                          btn = createButton(i, dialogOptions.buttons[i]);
+                          appendChildren(dialogElement__footer, [btn]);
+                          dialogElement__buttons["button_" + i] = btn;
+                          buttonCount++;
+                      }
+                  } else if (typeof dialogOptions.buttons === "object") {
+                      keys = getKeys(dialogOptions.buttons)
+                      for (i=0; i < keys.length; i++) {
+                          btn = createButton(keys[i], dialogOptions.buttons[keys[i]].text);
+                          appendChildren(dialogElement__footer, [btn]);
+                          dialogElement__buttons["button_" + keys[i]] = btn;
+                          buttonCount++;
+                      }
                   }
               }
+
+              setStyle(dialogElement__footer, {display : buttonCount === 0 ? 'none' : 'block'});
+
           }
 
-          if ( buttonCount === 0) {
-              setStyle(dialogElement__footer, {display : 'none'});
-          }
 
           if (!dialogOptions.title) {
-              setStyle(dialogElement__footer, {display : STYLE_DISPLAY_BLOCK});
+              setStyle(dialogElement__header, {display : STYLE_DISPLAY_BLOCK});
           } else {
               setInnerHtml(dialogElement__header, "<a href='javascript:dialogr.close(\"" + id + "\")'>x</a><h1>" + dialogOptions.title + "</h1>");
           }
+          createButtons(dialogOptions);
           appendChildren(dialogElement__loaderOverlay, [dialogElement__loader]);
           appendChildren(dialogElement, [dialogElement__header, dialogElement__content, dialogElement__footer, dialogElement__loaderOverlay]);
-
           return {
               o : dialogElement__overlay,
               p : dialogElement__loaderOverlay,
@@ -1198,6 +1212,7 @@
               footer : dialogElement__footer,
               content : dialogElement__content,
               buttons : dialogElement__buttons,
+              createButtons : createButtons,
               destroy : function() {},
               addToDom : function() {
                   appendChildren(document.body, [dialogElement, dialogElement__overlay]);
@@ -1220,9 +1235,8 @@
 
           var _dialogOptions, 
               _elements = {},
-              _currentDialog = this;
-
-              var _weAre = null;
+              _currentDialog = this,
+              _weAre = null;
 
          
           if( typeof optionsOrUrl === "string") {
@@ -1273,10 +1287,13 @@
               _weAre.fatherTo = this.id;
           }
 
+          _dialogOptions.$r = _weAre;
+
           var dialogDeferred = self.Deferred(),
               _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
               _eventing.setIdentity(_weAre);
               
+          console.warn(_dialogOptions);
           
            if (_weAre.father) {
               _eventing.on('$f', function(d, msg, msgEvent) {
@@ -1318,9 +1335,32 @@
           //
           _eventing.on('$o', function(data, msg, e) {
               //_eventing.off('$o');
-              var deferred = self.Deferred();
+              var updateSize = false,
+                  deferred = self.Deferred();
               _eventing.setDialogrId(_currentDialog.id);
               _eventing.setNamedTarget('dialog', e.source);
+
+              if (!isUndefined(data.options)) {
+
+                  if (data.options.width) {
+                      updateSize = true;
+                      _dialogOptions.width = normalizeSize(data.options.width, window.innerWidth);
+                  }
+                  if (data.options.height) {
+                      updateSize = true;
+                      _dialogOptions.height = normalizeSize(data.options.height, window.innerHeight);
+                  }
+                  if (data.options.buttons) {
+                      updateSize = true;
+                      _dialogOptions.buttons = data.options.buttons;
+                      _elements.createButtons(_dialogOptions);
+                  }
+
+                  if (updateSize) {
+                      onResize(_elements, _dialogOptions);
+                  }
+              }
+
 
               deferred.resolve(extend({
                   openerUrl : window.location.href.toString(),
@@ -1445,7 +1485,7 @@
           _dialogs.push(this);
       
        }
-  function DialogContext(openingWindow, successCallback, failCallback) {
+  function DialogContext(openingWindow, successCallback, failCallback, options) {
       var _eventing = new EventingManager(null, openingWindow, true),
           _context = this;  
 
@@ -1464,7 +1504,8 @@
       // Find the opening window.
       _eventing.await('$o', {
           dialogUrl : window.location.toString(),
-          id : dialogrIdParameter
+          id : dialogrIdParameter,
+          options : options
       }, openingWindow).then(function(data) {
           var weAre = {
               child : true,
@@ -1647,7 +1688,7 @@
       //
       
 
-  function ready() {
+  function ready(options) {
 
       var deferred = self.Deferred();
       insideDialog = true;
@@ -1655,7 +1696,7 @@
       winloadDeferred.done(function() {
 
           // Setup the dialog context
-          _dialogContext = new DialogContext(win.parent, contextReadyCallback, contextFailCallback);
+          _dialogContext = new DialogContext(win.parent, contextReadyCallback, contextFailCallback, options);
 
           function contextReadyCallback(r) {
               deferred.resolve(_dialogContext);
@@ -1667,8 +1708,8 @@
          
 
       });
-
-       return deferred.promise();
+      
+      return deferred.promise();
 
   }
 

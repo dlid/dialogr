@@ -2,10 +2,12 @@
         zIndex : 1500,
         url : null,
         className : 'dialogr',
-        width : '90%',
-        height : '60%',
+        width : 300,
+        height : 100,
         title : null,
-        buttons : ["Ok", "Cancel"],
+        breakpointW : 600,  // Always snap to fullscreen if window width <= n
+        breakpointH : 500,  // Always snap to fullscreen if window height <= n
+       // buttons : ["Ok", "Cancel"],
         /*init : function(e) {
             var d = document.createElement('div');
             d.style.backgroundColor = 'yellow';
@@ -16,7 +18,7 @@
         },*/
         param : null,
         maxWidth : null,
-        minWidth : 600
+        minWidth : 0
     },
     _uniqidix = 0,
     openedDialog = null,
