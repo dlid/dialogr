@@ -9,7 +9,7 @@
 			width : '300px',
 			height : '120px',
 			// And we want to set our own buttons
-			buttons : ["Okej då", "Avbryt"]
+			buttons : ["Spara", "Cancellera"]
 		}).done(function(dialogContext) {
 
 			if (dialogContext.param.name) {
@@ -19,7 +19,7 @@
 			dialogContext
 			.on('button_0', function() {
 				var name = document.getElementById('name').value;
-					dialogContext.resolve(name);
+				dialogContext.resolve(name);
 			})
 			.on('button_1', function() {
 				dialogContext.close();

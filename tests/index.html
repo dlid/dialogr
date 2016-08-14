@@ -14,7 +14,10 @@
 		dialogr.open('frame_content.html', {
 			width : 300, height : 100,
 			param : { name : name },
-			buttons : ["ost", "boll"]
+			buttons : ["mhm?!"]
+		})
+		.on('button_0', function() {
+			alert("mm");
 		})
 		.done(function(resolvedNameFromDialog) {
 			name = resolvedNameFromDialog;
@@ -44,7 +47,7 @@
 		})
 		.on('name_updated_was_it', function(resolvedNameFromDialog) {
 			var d = dialogr.deferred();
-			document.getElementById('name').innerText = resolvedNameFromDialog;
+			//document.getElementById('name').innerText = resolvedNameFromDialog;
 			name = resolvedNameFromDialog;
 			setTimeout(function() {
 				d.resolve();

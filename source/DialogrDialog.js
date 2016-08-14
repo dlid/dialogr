@@ -59,7 +59,8 @@
 
         var dialogDeferred = self.Deferred(),
             _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
-            _eventing.setIdentity(_weAre);
+            _eventing.setIdentity(_weAre),
+            _disableScrollForElements = [];
             
         console.warn(_dialogOptions);
         
@@ -185,6 +186,18 @@
             });
 
             _elements = createDialogElements(this.id, _dialogOptions);
+
+            i = document.getElementsByTagName('html');
+            if (i.length == 1) _disableScrollForElements.push(i[0]);
+            i = document.getElementsByTagName('body');
+            if (i.length == 1) _disableScrollForElements.push(i[0]);
+
+            var _originalStyles = [];
+            for (i=0; i < _disableScrollForElements.length; i++) {
+                _originalStyles.push(getStyle(_disableScrollForElements[i], 'overflow-y'));
+                setStyle(_disableScrollForElements[i], {'overflow-y' : 'hidden'});
+            }
+
             _elements.addToDom();
 
               setTimeout(function() {
@@ -206,6 +219,13 @@
             //if (openerDialogId) {
             //    _eventing.send('dialogr.close');
            // }
+            if (_dialogs.length == 1) {
+                console.warn("RESET STYLES", _dialogs.length, _disableScrollForElements);
+                for (var i=0; i < _disableScrollForElements.length; i++) {
+                    console.warn(i, _originalStyles[i]);
+                    setStyle(_disableScrollForElements[i], {'overflow-y' : _originalStyles[i]});
+                }
+            }
            if (_weAre.father && !_weAre.mother) {
             _eventing.send('dialogr.close');
            } else if (_weAre.mother) {

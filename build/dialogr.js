@@ -693,23 +693,23 @@
       }
 
       function messageHandler(e) {
-      if (e.source == window) {
-      return;
-      }
+          if (e.source == window) {
+          return;
+          }
 
-  function callbackReady(data) {
-      n++;
-      if (data.type === "fail") isSuccess = false;
+          function callbackReady(data) {
+              n++;
+              if (data.type === "fail") isSuccess = false;
 
-      responses.push(data);
-      if (n === _boundEventHandlers.length) {
-          clearTimeout(timer);
-          send(o.messageId + "_response", {
-              type : isSuccess ? "success" : "fail",
-              response : responses
-          }, null, e.source);
-      }
-  }
+              responses.push(data);
+              if (n === _boundEventHandlers.length) {
+                  clearTimeout(timer);
+                  send(o.messageId + "_response", {
+                      type : isSuccess ? "success" : "fail",
+                      response : responses
+                  }, null, e.source);
+              }
+          }
 
           function eventHandlerReady(r) {
                 if (!timer) return;
@@ -743,32 +743,6 @@
                       return;
                   }
 
-                  /*if (o.messageType == "dialogr.i-am-your-father") {
-                      setEventingTargetWindow(e.source);
-                      document.getElementsByTagName('body')[0].style.backgroundColor = 'orange';
-                      console.info("Ok. Send non-dialogr-stuff here: ", openingDialogId, e);
-                      return;
-                  }*/
-
-  //                    console.info("=>["+weAreToString()+"]", o.messageType, o, _eventHandlers, window.location);
-
-                  /*if (isUndefined(_eventHandlers[o.messageType])) {
-                      if (openingDialogId && !_dialogContext && o.messageType.indexOf('dialogr.') !== 0) {
-                          console.info("Meddelande från " + o.dialogrId +  " - skicka vidare till dialogen som öppnade den: ", openingDialogId, o.await);
-                          if (o.await) {
-                              dialogr.invokeAs(openingDialogId, o.messageType, o.messageData, o.dialogrId).then(function(dddd) {
-                                  console.warn("InvokeAs fungerade iaf...", dddd);
-                              }, function(ddd) {
-                                  console.warn("InvokeAs fungerade INTE!!", ddd);
-                              });
-                          } else {
-                              dialogr.triggerAs(openingDialogId, o.messageType, o.messageData, o.dialogrId);
-                          }
-                          return;
-                      }
-                  }*/
-
-                 
                   if(!isUndefined(_eventHandlers[o.messageType])) {
                      // console.warn("handlers", eventingDialogId, _eventHandlers);
                       if (!o.await) {
@@ -1291,7 +1265,8 @@
 
           var dialogDeferred = self.Deferred(),
               _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
-              _eventing.setIdentity(_weAre);
+              _eventing.setIdentity(_weAre),
+              _disableScrollForElements = [];
               
           console.warn(_dialogOptions);
           
@@ -1417,6 +1392,18 @@
               });
 
               _elements = createDialogElements(this.id, _dialogOptions);
+
+              i = document.getElementsByTagName('html');
+              if (i.length == 1) _disableScrollForElements.push(i[0]);
+              i = document.getElementsByTagName('body');
+              if (i.length == 1) _disableScrollForElements.push(i[0]);
+
+              var _originalStyles = [];
+              for (i=0; i < _disableScrollForElements.length; i++) {
+                  _originalStyles.push(getStyle(_disableScrollForElements[i], 'overflow-y'));
+                  setStyle(_disableScrollForElements[i], {'overflow-y' : 'hidden'});
+              }
+
               _elements.addToDom();
 
                 setTimeout(function() {
@@ -1438,6 +1425,13 @@
               //if (openerDialogId) {
               //    _eventing.send('$c');
              // }
+              if (_dialogs.length == 1) {
+                  console.warn("RESET STYLES", _dialogs.length, _disableScrollForElements);
+                  for (var i=0; i < _disableScrollForElements.length; i++) {
+                      console.warn(i, _originalStyles[i]);
+                      setStyle(_disableScrollForElements[i], {'overflow-y' : _originalStyles[i]});
+                  }
+              }
              if (_weAre.father && !_weAre.mother) {
               _eventing.send('$c');
              } else if (_weAre.mother) {
