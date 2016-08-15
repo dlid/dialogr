@@ -42,8 +42,15 @@
       STYLE_POSITION_FIXED = 'fixed',
       STYLE_POSITION_ABSOLUTE = 'absolute',
       STYLE_VISIBILITY_HIDDEN = "hidden",
+      STYLE_VISIBILITY_VISIBLE = 'visible',
       STYLE_UNIT_PIXELS = 'px',
-      ELEMENT_TYPE_DIV = 'div';
+      ELEMENT_TYPE_DIV = 'div',
+      STYLE_OVERFLOW_Y = 'overflow-y',
+      ATTR_DISABLED = 'disabled',
+      STYLE_BORDERBOX = 'border-box',
+      STYLE_BOXSIZING = "box-sizing",
+      STYLE_WIDTH = "width",
+      STYLE_HEIGHT = "height";
   (function(global) {
   	function isArray(arr) {
   		return Object.prototype.toString.call(arr) === '[object Array]';
@@ -455,6 +462,12 @@
       return makeUrl(u);
   }
 
+  /**
+   * Utility function to attach an event handler to an object
+   * @param  {DOMElement}   object   The DOM Element to attach the event to
+   * @param  {string}       type     The name of the event
+   * @param  {Function}     callback The callback function
+   */
   function attachEventHandler(object, type, callback) {
       if (object === null || isUndefined(object)) return;
       if (object.addEventListener) {
@@ -466,6 +479,24 @@
       }
   }
 
+  /**
+   * Utility function get the the innerWidth of an element
+   * @param  {DOMElement} obj DOM Element to get innerWidth of. Will use window object if omitted
+   * @return {int} The innerWidth of the element
+   */
+  function getInnerWidth(obj) {
+      obj = isUndefined(obj) ? win : obj;
+      return obj.innerWidth
+  }
+
+  /**
+   * Remove an eventhandler from an object
+   * TBD
+   * @param  {[type]}   object   [description]
+   * @param  {[type]}   type     [description]
+   * @param  {Function} callback [description]
+   * @return {[type]}            [description]
+   */
   function removeEventHandler(object, type, callback) {
       if (object === null || isUndefined(object)) return;
       if (object.removeEventListener) {
@@ -546,20 +577,20 @@
               cpadding = getOuterSizes(elm, "padding");
               cborders = getOuterSizes(elm, "border-width");
               cmargins = getOuterSizes(elm, "margin");
-              borderBox = (getStyle(elm, "box-sizing") === "border-box");
-              visible = (getStyle(elm, "display") === "block");
+              borderBox = (getStyle(elm, STYLE_BOXSIZING) === STYLE_BORDERBOX);
+              visible = (getStyle(elm, "display") === STYLE_DISPLAY_BLOCK);
               
 
           if (!borderBox) {
-              w = parseInteger(getStyle(elm, 'width')) + cpadding.l + cpadding.r + cmargins.l + cmargins.r + cborders.l + cborders.r;
-              h = parseInteger(getStyle(elm, 'height')) + cpadding.t + cpadding.b + cmargins.t + cmargins.b + cborders.t + cborders.b;
-              innerW = parseInteger(getStyle(elm, 'width'));
-              innerH = parseInteger(getStyle(elm, 'height'));
+              w = parseInteger(getStyle(elm, STYLE_WIDTH)) + cpadding.l + cpadding.r + cmargins.l + cmargins.r + cborders.l + cborders.r;
+              h = parseInteger(getStyle(elm, STYLE_HEIGHT)) + cpadding.t + cpadding.b + cmargins.t + cmargins.b + cborders.t + cborders.b;
+              innerW = parseInteger(getStyle(elm, STYLE_WIDTH));
+              innerH = parseInteger(getStyle(elm, STYLE_HEIGHT));
 
              // console.warn( h, innerH );
           } else {
-              w = parseInteger(getStyle(elm, 'width'));
-              h = parseInteger(getStyle(elm, 'height'));
+              w = parseInteger(getStyle(elm, STYLE_WIDTH));
+              h = parseInteger(getStyle(elm, STYLE_HEIGHT));
 
 
               innerW = w - cpadding.l - cpadding.r - cmargins.l - cmargins.r - cborders.l - cborders.r;
@@ -959,18 +990,24 @@
               headerElement =  getElementSize(dialogElement__header),
               contentElement =  getElementSize(dialogElement__content),
               footerElement =  getElementSize(dialogElement__footer),
-              loaderElement = getElementSize(dialogElement__loader);
+              loaderElement = getElementSize(dialogElement__loader),
+              dialogInnerWidth = dialogSize.innerWidth(),
+              dialogInnerHeight = dialogSize.innerHeight(),
+              footerHeight = footerElement.height(),
+              headerHeight = headerElement.height();
 
-          contentElement.setWidth( dialogSize.innerWidth() );
-          var x =  dialogSize.innerHeight() - footerElement.height() - headerElement.height();
+              getInnerWidth()
 
-          contentElement.setHeight( dialogSize.innerHeight() - footerElement.height() - headerElement.height()  );
-          footerElement.setTop( contentElement.height() + headerElement.height() );
-          footerElement.setWidth( dialogSize.innerWidth() );
+          contentElement.setWidth( dialogInnerWidth );
+          var x =  dialogInnerHeight - footerHeight - headerHeight;
+
+          contentElement.setHeight( dialogInnerHeight - footerHeight - headerHeight  );
+          footerElement.setTop( contentElement.height() + headerHeight );
+          footerElement.setWidth( dialogInnerWidth );
 
 
-          loaderElement.setTop((dialogSize.innerHeight() / 2) - (loaderElement.height()/2));
-          loaderElement.setLeft((dialogSize.innerWidth() / 2) - (loaderElement.width()/2));
+          loaderElement.setTop((dialogInnerHeight / 2) - (loaderElement.height()/2));
+          loaderElement.setLeft((dialogInnerWidth / 2) - (loaderElement.width()/2));
       }
 
       function calculateDialogSize(elements, dialogOptions) {
@@ -989,7 +1026,7 @@
                if (parseInteger(dialogOptions.maxWidth) > 0 && parseInteger(actualW) > parseInt(dialogOptions.maxWidth)) {
               width = dialogOptions.maxWidth;
               left =  Math.ceil( (window.innerWidth/2) - (parseInt(width,10) / 2)) + STYLE_UNIT_PIXELS;
-              if(getStyle(elements.dialog, "box-sizing") != "border-box") {
+              if(getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
                   iw = (parseInteger(width) ) + STYLE_UNIT_PIXELS;
               } else {
                   iw = (parseInteger(width) - padding.r - padding.l - borders.l - borders.r ) + STYLE_UNIT_PIXELS;
@@ -997,7 +1034,7 @@
           }
 
               
-          if (getStyle(elements.dialog, "box-sizing") != "border-box") {
+          if (getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
               width = (parseInteger(width) - padding.l - padding.r - borders.l - borders.r - margins.l - margins.r) + STYLE_UNIT_PIXELS;
               height = (parseInteger(height) - padding.t - padding.b - borders.t - borders.b - margins.t - margins.b) + STYLE_UNIT_PIXELS;
           }
@@ -1014,7 +1051,7 @@
               left = 0;
               top = 0;
 
-              if(getStyle(elements.dialog, "box-sizing") != "border-box") {
+              if(getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
                   iw = (parseInteger(width) - padding.r ) + STYLE_UNIT_PIXELS;
               } else {
                   iw =  (parseInteger(width) - padding.r - padding.l - borders.l - borders.r ) + STYLE_UNIT_PIXELS;
@@ -1022,7 +1059,7 @@
 
          
           } else {
-              if(getStyle(elements.dialog, "box-sizing") != "border-box") {
+              if(getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
                   iw = (parseInteger(width) ) + STYLE_UNIT_PIXELS;
               } else {
                   iw = (parseInteger(width) - padding.r - padding.l - borders.l - borders.r ) + STYLE_UNIT_PIXELS;
@@ -1205,22 +1242,15 @@
       }
 
   // The actual instance of the dialog
-      function DialogrDialog(optionsOrUrl, options, internalOptions, idFromDialogEvent, openerDialogId) {
+      function DialogrDialog(options, internalOptions, idFromDialogEvent, openerDialogId) {
 
           var _dialogOptions, 
               _elements = {},
               _currentDialog = this,
-              _weAre = null;
-
-         
-          if( typeof optionsOrUrl === "string") {
-              if (isUndefined(options) || typeof options !== "object") {
-                  options = {};
-              }
-              options.url = optionsOrUrl;
-          } else if (typeof optionsOrUrl === "object") {
-              options = optionsOrUrl;
-          }
+              _weAre = null,
+              _isFather = options.$$.isFather,
+              _isMother = options.$$.isMother,
+              _thisId = null;
 
           _dialogOptions = extend({}, dialogrDefaults, options);
           _dialogOptions.maxWidth = normalizeSize(_dialogOptions.maxWidth, window.outerWidth);
@@ -1231,50 +1261,36 @@
               return;
           }
 
-          var fakeContext = false;
+          var fakeContext = _isFather && !_isMother;
 
-          if (idFromDialogEvent && idFromDialogEvent !== true) {
-              this.id = idFromDialogEvent;
-
-          } else {
+          _thisId = options.$$.id || null;
+          if (!_thisId) {
               dialogId ++;
-              this.id = "d" + uniqid('dlg') +  "_" + dialogId;
+              _thisId = "d" + uniqid('dlg') +  "_" + dialogId;
           }
+
+          this.id = _thisId;
 
           // Add dialog id to url
           _dialogOptions.url = setQuerystringValue(_dialogOptions.url, {'_dialogrId' : this.id});
 
-          if (idFromDialogEvent === true) fakeContext = true;    
-
           // Identify where and who we are? Child? Father? Mother+Father? Mother only?
-          _weAre = { father : false, mother : false, child : false };
-          if (idFromDialogEvent === true) {
-              _weAre.father = true;
-              _weAre.fatherTo = this.id;
-          } else if (!isUndefined(idFromDialogEvent)) {
-              _weAre.mother = true;
-              _weAre.motherTo = this.id;
-          } else {
-              _weAre.mother = true;
-              _weAre.motherTo = this.id;
-              _weAre.father = true;
-              _weAre.fatherTo = this.id;
-          }
+          _weAre = { father : _isFather, mother : _isMother, child : false };
+          if (_isFather) _weAre.fatherTo = _thisId;
+          if (_isMother) _weAre.motherTo = _thisId;
 
           _dialogOptions.$r = _weAre;
 
           var dialogDeferred = self.Deferred(),
-              _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
+              _eventing = new EventingManager(_thisId, null, fakeContext, openerDialogId);
               _eventing.setIdentity(_weAre),
               _disableScrollForElements = [];
               
-          console.warn(_dialogOptions);
-          
            if (_weAre.father) {
               _eventing.on('$f', function(d, msg, msgEvent) {
                   if (_weAre.fatherTo == d.childId) {
                       _eventing.setNamedTarget('child', msgEvent.source);
-                      _eventing.send('$k', { "fatherLocation" : win.location.href }, null, msgEvent.source);
+                      _eventing.send('$k', null, null, msgEvent.source);
                   }
               }); 
 
@@ -1282,12 +1298,12 @@
 
               _eventing.on('$h', function(buttonName) {
                   if (_elements.buttons[buttonName]) {
-                      _elements.buttons[buttonName].setAttribute('disabled','disabled');
+                      _elements.buttons[buttonName].setAttribute(ATTR_DISABLED,ATTR_DISABLED);
                   }
               })
               .on('$i', function(buttonName) {
                   if (_elements.buttons[buttonName]) {
-                      _elements.buttons[buttonName].removeAttribute('disabled');
+                      _elements.buttons[buttonName].removeAttribute(ATTR_DISABLED);
                   }
               })
               .on('$a', function(e) {
@@ -1319,11 +1335,11 @@
 
                   if (data.options.width) {
                       updateSize = true;
-                      _dialogOptions.width = normalizeSize(data.options.width, window.innerWidth);
+                      _dialogOptions.width = normalizeSize(data.options.width, getInnerWidth());
                   }
                   if (data.options.height) {
                       updateSize = true;
-                      _dialogOptions.height = normalizeSize(data.options.height, window.innerHeight);
+                      _dialogOptions.height = normalizeSize(data.options.height, getInnerWidth());
                   }
                   if (data.options.buttons) {
                       updateSize = true;
@@ -1359,11 +1375,7 @@
 
           _eventing.on('$j', function(d) {
               dialogDeferred.resolve(d);
-              //if (idFromDialogEvent) {
-              //    _eventing.send('$c', null, null, 'eventingTarget', openerDialogId);
-              //} else {
-                 _currentDialog.close();
-              //}
+              _currentDialog.close();
           });
 
           _eventing.on('$c', function(d,e,f) {
@@ -1372,26 +1384,28 @@
           });
 
           _eventing.on('$b', function() {
-              _elements.p.style.visibility = 'visible';
+              _elements.p.style.visibility = STYLE_VISIBILITY_VISIBLE;
           });
 
           _eventing.on('$m', function() {
-              _elements.p.style.visibility = 'hidden';
-              _elements.content.style.visibility = "visible";
+              _elements.p.style.visibility = STYLE_VISIBILITY_HIDDEN;
+              _elements.content.style.visibility = STYLE_VISIBILITY_VISIBLE;
           });
 
-          if ( (!idFromDialogEvent) || (idFromDialogEvent && idFromDialogEvent !== true) ) {
+          if ( _isMother ) {
 
               _eventing.on('$n', function(d) {
                   var deferred = self.Deferred();
-                  var x = dialogr.open(d.optionsOrUrl, d.options, d.newDialogId, d.openerId);
+                  d.options.$$.isMother = true;
+                  d.options.$$.isFather = false;
+                  var x = dialogr.open(d.options, d.newDialogId, d.openerId);
                   deferred.resolve({
                       dialogrId : d.newDialogId
                   });
                   return deferred.promise();
               });
 
-              _elements = createDialogElements(this.id, _dialogOptions);
+              _elements = createDialogElements(_thisId, _dialogOptions);
 
               i = document.getElementsByTagName('html');
               if (i.length == 1) _disableScrollForElements.push(i[0]);
@@ -1400,15 +1414,14 @@
 
               var _originalStyles = [];
               for (i=0; i < _disableScrollForElements.length; i++) {
-                  _originalStyles.push(getStyle(_disableScrollForElements[i], 'overflow-y'));
-                  setStyle(_disableScrollForElements[i], {'overflow-y' : 'hidden'});
+                  _originalStyles.push(getStyle(_disableScrollForElements[i], STYLE_OVERFLOW_Y));
+                  setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : STYLE_VISIBILITY_HIDDEN});
               }
 
               _elements.addToDom();
 
-                setTimeout(function() {
                   onResize(_elements, _dialogOptions);
-              }, 5);
+          
 
               attachEventHandler(window, 'resize', onResizeEventHandler);
               openedDialog = true;
@@ -1426,16 +1439,13 @@
               //    _eventing.send('$c');
              // }
               if (_dialogs.length == 1) {
-                  console.warn("RESET STYLES", _dialogs.length, _disableScrollForElements);
                   for (var i=0; i < _disableScrollForElements.length; i++) {
-                      console.warn(i, _originalStyles[i]);
-                      setStyle(_disableScrollForElements[i], {'overflow-y' : _originalStyles[i]});
+                      setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : _originalStyles[i]});
                   }
               }
              if (_weAre.father && !_weAre.mother) {
-              _eventing.send('$c');
+                  _eventing.send('$c');
              } else if (_weAre.mother) {
-                 
                  for (var i=0; i < _dialogs.length; i++) {
                   if (_dialogs[i].id == _currentDialog.id) {
                       _dialogs.splice(i, 1);
@@ -1638,19 +1648,47 @@
       }
   }
 
-  function open(optionsOrUrl, options, id, openingDialogId) {
-          
+  function extendWithInternalOptions(o) {
+      return extend({
+          $$ : {
+              isFather : true,
+              isMother : true,
+              id : null,
+              byFather : false
+          }
+      }, o);
+  }
+
+  function open(options) {
+
+      var id = null,
+          openingDialogId = null;
+      options = extendWithInternalOptions(options);
+
+      if (options.$$.byFather !== false) {
+          openingDialogId = options.$$.byFather;
+          id = options.$$.id;
+      }
+
       var dialogInstance,
           openDialogs = _dialogs.slice(0);
-              options = options || {};
+          options = options || {};
+      
       if (_dialogContext) {
-          dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, true);
+          options.$$.isMother = false;
+          dialogInstance = new DialogrDialog(options, {}, true);
 
           _dialogContext.invoke('$n', {
-              optionsOrUrl : optionsOrUrl,
-              options : options,
-              newDialogId : dialogInstance.id,
-              openerId : _dialogContextDialogId
+              options : extend({}, options, 
+                      { 
+                          $$ : { 
+                              id : dialogInstance.id, 
+                              byFather : _dialogContextDialogId
+                          }
+                      }
+                  ),
+                  newDialogId : dialogInstance.id,
+                  openerId : _dialogContextDialogId
           }).then(function(d) {
 
               dialogInstance.$$e.setDialogrId(dialogInstance.id);
@@ -1667,8 +1705,7 @@
               }
               options.zIndex = maxZindex + 10;
           }
-
-          dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, id, openingDialogId);
+          dialogInstance = new DialogrDialog(options, {}, id, openingDialogId);
           
       }
 

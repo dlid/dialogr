@@ -12,17 +12,43 @@
 
 		// Call the dialogr ready function to indicate that the dialog
 		// is loaded, and to get access to parameters and callback functions
-		dialogr.ready().done(function(dialog) {
+		dialogr.ready({
+			buttons : {
+				"save" : { text : "Save" },
+				"discard" : {text : "Cancel"},
+				"apply" : { text : "Apply", disabled : true }
+			}
+		}).done(function(dialog) {
 			dlg = dialog;
+
+
+			if (dialog.param) {
+				if (dialog.param.alias) {
+					document.getElementById('name').innerText = dialog.param.alias;
+				}
+				for (var key in dialog.param) {
+					var e = document.querySelector("input[name="+key+"]");
+					if (e) {
+						e.value = dialog.param[key];
+					}
+				}
+			}
 
 			document.getElementById('name').onkeyup = function() {
 				dlg.trigger('an_update', document.getElementById('name').innerText);
 			}
 
-
 			dlg
 			.on('button_save', function() {
-				dlg.resolve();
+
+				var ret = { alias : document.getElementById('name').innerText },
+					elements = document.getElementsByTagName('input');
+				for (var i=0; i < elements.length; i++) {
+					ret[elements[i].getAttribute("name")] = elements[i].value;
+				}
+
+
+				dlg.resolve(ret);
 			})
 			.on('button_apply', function() {
 				dlg.block();
@@ -40,7 +66,8 @@
 		}
 
 		function child() {
-			dialogr.open("frame_content.html", {
+			dialogr.open({
+				url : "frame_content.html",
 				width : 500, height: 120,
 				param : {
 					name : document.getElementById('name').innerText
@@ -48,10 +75,6 @@
 			})
 			.done(function(name) {
 				document.getElementById('name').innerText = name;
-				dlg.block();
-				dlg.invoke('name_updated_was_it', name).then(function() {
-					dlg.unblock();
-				});
 			});
 		}
 
@@ -59,9 +82,12 @@
 	</script>
 <body>	
 	<div style="margin-bottom: 1em; clear:both;overflow:auto;">
-	<img src="httpsx://placeimg.com/80/80/people" style="float:left; margin-right: 20px;" />
+	<img src="user-placeholder.jpg" style="float:left; margin-right: 20px;" />
 	<div style="margin-top: 1em;">
-		<span id="name" style="width: 70%;">No alias</span> <a href="javascript:child()">...</a>
+		<span id="name" style="width: 70%;">No alias</span> (<a href="javascript:child()">change</a>)
+		<p style="color: #555; font-size: .85em;">
+			(Using 'Name Input Dialog' inside another dialog)
+		</p>
 	</div>
 	</div>
 
@@ -74,23 +100,19 @@
 		<tbody>
 			<tr>
 				<th style="font-size: .85em; font-weight: normal;text-align:left;">E-mail</th>
-				<td><input type="text" /></td>
+				<td><input type="text" name="email" /></td>
 			</tr>
 			<tr>
 				<th style="font-size: .85em; font-weight: normal;text-align:left;">First name</th>
-				<td><input type="text" /></td>
+				<td><input type="text" name="firstName" /></td>
 			</tr>
 			<tr>
 				<th style="font-size: .85em; font-weight: normal;text-align:left;">Last name</th>
-				<td><input type="text" /></td>
+				<td><input type="text" name="lastName" /></td>
 			</tr>
 			<tr>
 				<th style="font-size: .85em; font-weight: normal;text-align:left;">Year of birth</th>
-				<td><input type="number" /></td>
-			</tr>
-			<tr>
-				<th style="font-size: .85em; font-weight: normal;text-align:left;">Timezone</th>
-				<td><select><option>Europe/Stockholm</option></select></td>
+				<td><input type="number" name="birthyear" /></td>
 			</tr>
 			<tr>
 				<th style="font-size: .85em; font-weight: normal;text-align:left;">Fake loader</th>

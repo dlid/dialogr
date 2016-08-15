@@ -1,4 +1,10 @@
 
+/**
+ * Utility function to attach an event handler to an object
+ * @param  {DOMElement}   object   The DOM Element to attach the event to
+ * @param  {string}       type     The name of the event
+ * @param  {Function}     callback The callback function
+ */
 function attachEventHandler(object, type, callback) {
     if (object === null || isUndefined(object)) return;
     if (object.addEventListener) {
@@ -10,6 +16,24 @@ function attachEventHandler(object, type, callback) {
     }
 }
 
+/**
+ * Utility function get the the innerWidth of an element
+ * @param  {DOMElement} obj DOM Element to get innerWidth of. Will use window object if omitted
+ * @return {int} The innerWidth of the element
+ */
+function getInnerWidth(obj) {
+    obj = isUndefined(obj) ? win : obj;
+    return obj.innerWidth
+}
+
+/**
+ * Remove an eventhandler from an object
+ * TBD
+ * @param  {[type]}   object   [description]
+ * @param  {[type]}   type     [description]
+ * @param  {Function} callback [description]
+ * @return {[type]}            [description]
+ */
 function removeEventHandler(object, type, callback) {
     if (object === null || isUndefined(object)) return;
     if (object.removeEventListener) {
@@ -90,20 +114,20 @@ function getElementSize(elm) {
             cpadding = getOuterSizes(elm, "padding");
             cborders = getOuterSizes(elm, "border-width");
             cmargins = getOuterSizes(elm, "margin");
-            borderBox = (getStyle(elm, "box-sizing") === "border-box");
-            visible = (getStyle(elm, "display") === "block");
+            borderBox = (getStyle(elm, STYLE_BOXSIZING) === STYLE_BORDERBOX);
+            visible = (getStyle(elm, "display") === STYLE_DISPLAY_BLOCK);
             
 
         if (!borderBox) {
-            w = parseInteger(getStyle(elm, 'width')) + cpadding.l + cpadding.r + cmargins.l + cmargins.r + cborders.l + cborders.r;
-            h = parseInteger(getStyle(elm, 'height')) + cpadding.t + cpadding.b + cmargins.t + cmargins.b + cborders.t + cborders.b;
-            innerW = parseInteger(getStyle(elm, 'width'));
-            innerH = parseInteger(getStyle(elm, 'height'));
+            w = parseInteger(getStyle(elm, STYLE_WIDTH)) + cpadding.l + cpadding.r + cmargins.l + cmargins.r + cborders.l + cborders.r;
+            h = parseInteger(getStyle(elm, STYLE_HEIGHT)) + cpadding.t + cpadding.b + cmargins.t + cmargins.b + cborders.t + cborders.b;
+            innerW = parseInteger(getStyle(elm, STYLE_WIDTH));
+            innerH = parseInteger(getStyle(elm, STYLE_HEIGHT));
 
            // console.warn( h, innerH );
         } else {
-            w = parseInteger(getStyle(elm, 'width'));
-            h = parseInteger(getStyle(elm, 'height'));
+            w = parseInteger(getStyle(elm, STYLE_WIDTH));
+            h = parseInteger(getStyle(elm, STYLE_HEIGHT));
 
 
             innerW = w - cpadding.l - cpadding.r - cmargins.l - cmargins.r - cborders.l - cborders.r;

@@ -1,20 +1,13 @@
 // The actual instance of the dialog
-    function DialogrDialog(optionsOrUrl, options, internalOptions, idFromDialogEvent, openerDialogId) {
+    function DialogrDialog(options, internalOptions, idFromDialogEvent, openerDialogId) {
 
         var _dialogOptions, 
             _elements = {},
             _currentDialog = this,
-            _weAre = null;
-
-       
-        if( typeof optionsOrUrl === "string") {
-            if (isUndefined(options) || typeof options !== "object") {
-                options = {};
-            }
-            options.url = optionsOrUrl;
-        } else if (typeof optionsOrUrl === "object") {
-            options = optionsOrUrl;
-        }
+            _weAre = null,
+            _isFather = options.$$.isFather,
+            _isMother = options.$$.isMother,
+            _thisId = null;
 
         _dialogOptions = extend({}, dialogrDefaults, options);
         _dialogOptions.maxWidth = normalizeSize(_dialogOptions.maxWidth, window.outerWidth);
@@ -25,50 +18,36 @@
             return;
         }
 
-        var fakeContext = false;
+        var fakeContext = _isFather && !_isMother;
 
-        if (idFromDialogEvent && idFromDialogEvent !== true) {
-            this.id = idFromDialogEvent;
-
-        } else {
+        _thisId = options.$$.id || null;
+        if (!_thisId) {
             dialogId ++;
-            this.id = "d" + uniqid('dlg') +  "_" + dialogId;
+            _thisId = "d" + uniqid('dlg') +  "_" + dialogId;
         }
+
+        this.id = _thisId;
 
         // Add dialog id to url
         _dialogOptions.url = setQuerystringValue(_dialogOptions.url, {'_dialogrId' : this.id});
 
-        if (idFromDialogEvent === true) fakeContext = true;    
-
         // Identify where and who we are? Child? Father? Mother+Father? Mother only?
-        _weAre = { father : false, mother : false, child : false };
-        if (idFromDialogEvent === true) {
-            _weAre.father = true;
-            _weAre.fatherTo = this.id;
-        } else if (!isUndefined(idFromDialogEvent)) {
-            _weAre.mother = true;
-            _weAre.motherTo = this.id;
-        } else {
-            _weAre.mother = true;
-            _weAre.motherTo = this.id;
-            _weAre.father = true;
-            _weAre.fatherTo = this.id;
-        }
+        _weAre = { father : _isFather, mother : _isMother, child : false };
+        if (_isFather) _weAre.fatherTo = _thisId;
+        if (_isMother) _weAre.motherTo = _thisId;
 
         _dialogOptions.$r = _weAre;
 
         var dialogDeferred = self.Deferred(),
-            _eventing = new EventingManager(this.id, null, fakeContext, openerDialogId);
+            _eventing = new EventingManager(_thisId, null, fakeContext, openerDialogId);
             _eventing.setIdentity(_weAre),
             _disableScrollForElements = [];
             
-        console.warn(_dialogOptions);
-        
          if (_weAre.father) {
             _eventing.on('dialogr.find-father', function(d, msg, msgEvent) {
                 if (_weAre.fatherTo == d.childId) {
                     _eventing.setNamedTarget('child', msgEvent.source);
-                    _eventing.send('dialogr.i-am-your-father', { "fatherLocation" : win.location.href }, null, msgEvent.source);
+                    _eventing.send('dialogr.i-am-your-father', null, null, msgEvent.source);
                 }
             }); 
 
@@ -76,12 +55,12 @@
 
             _eventing.on('dialogr.disable-button', function(buttonName) {
                 if (_elements.buttons[buttonName]) {
-                    _elements.buttons[buttonName].setAttribute('disabled','disabled');
+                    _elements.buttons[buttonName].setAttribute(ATTR_DISABLED,ATTR_DISABLED);
                 }
             })
             .on('dialogr.enable-button', function(buttonName) {
                 if (_elements.buttons[buttonName]) {
-                    _elements.buttons[buttonName].removeAttribute('disabled');
+                    _elements.buttons[buttonName].removeAttribute(ATTR_DISABLED);
                 }
             })
             .on('dialogr.set-text', function(e) {
@@ -113,11 +92,11 @@
 
                 if (data.options.width) {
                     updateSize = true;
-                    _dialogOptions.width = normalizeSize(data.options.width, window.innerWidth);
+                    _dialogOptions.width = normalizeSize(data.options.width, getInnerWidth());
                 }
                 if (data.options.height) {
                     updateSize = true;
-                    _dialogOptions.height = normalizeSize(data.options.height, window.innerHeight);
+                    _dialogOptions.height = normalizeSize(data.options.height, getInnerWidth());
                 }
                 if (data.options.buttons) {
                     updateSize = true;
@@ -153,11 +132,7 @@
 
         _eventing.on('dialogr.resolve', function(d) {
             dialogDeferred.resolve(d);
-            //if (idFromDialogEvent) {
-            //    _eventing.send('dialogr.close', null, null, 'eventingTarget', openerDialogId);
-            //} else {
-               _currentDialog.close();
-            //}
+            _currentDialog.close();
         });
 
         _eventing.on('dialogr.close', function(d,e,f) {
@@ -166,26 +141,28 @@
         });
 
         _eventing.on('dialogr.block', function() {
-            _elements.dialogElementLoaderOverlay_r.style.visibility = 'visible';
+            _elements.dialogElementLoaderOverlay_r.style.visibility = STYLE_VISIBILITY_VISIBLE;
         });
 
         _eventing.on('dialogr.unblock', function() {
-            _elements.dialogElementLoaderOverlay_r.style.visibility = 'hidden';
-            _elements.content.style.visibility = "visible";
+            _elements.dialogElementLoaderOverlay_r.style.visibility = STYLE_VISIBILITY_HIDDEN;
+            _elements.content.style.visibility = STYLE_VISIBILITY_VISIBLE;
         });
 
-        if ( (!idFromDialogEvent) || (idFromDialogEvent && idFromDialogEvent !== true) ) {
+        if ( _isMother ) {
 
             _eventing.on('dialogr.open', function(d) {
                 var deferred = self.Deferred();
-                var x = dialogr.open(d.optionsOrUrl, d.options, d.newDialogId, d.openerId);
+                d.options.$$.isMother = true;
+                d.options.$$.isFather = false;
+                var x = dialogr.open(d.options, d.newDialogId, d.openerId);
                 deferred.resolve({
                     dialogrId : d.newDialogId
                 });
                 return deferred.promise();
             });
 
-            _elements = createDialogElements(this.id, _dialogOptions);
+            _elements = createDialogElements(_thisId, _dialogOptions);
 
             i = document.getElementsByTagName('html');
             if (i.length == 1) _disableScrollForElements.push(i[0]);
@@ -194,15 +171,14 @@
 
             var _originalStyles = [];
             for (i=0; i < _disableScrollForElements.length; i++) {
-                _originalStyles.push(getStyle(_disableScrollForElements[i], 'overflow-y'));
-                setStyle(_disableScrollForElements[i], {'overflow-y' : 'hidden'});
+                _originalStyles.push(getStyle(_disableScrollForElements[i], STYLE_OVERFLOW_Y));
+                setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : STYLE_VISIBILITY_HIDDEN});
             }
 
             _elements.addToDom();
 
-              setTimeout(function() {
                 onResize(_elements, _dialogOptions);
-            }, 5);
+        
 
             attachEventHandler(window, 'resize', onResizeEventHandler);
             openedDialog = true;
@@ -220,16 +196,13 @@
             //    _eventing.send('dialogr.close');
            // }
             if (_dialogs.length == 1) {
-                console.warn("RESET STYLES", _dialogs.length, _disableScrollForElements);
                 for (var i=0; i < _disableScrollForElements.length; i++) {
-                    console.warn(i, _originalStyles[i]);
-                    setStyle(_disableScrollForElements[i], {'overflow-y' : _originalStyles[i]});
+                    setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : _originalStyles[i]});
                 }
             }
            if (_weAre.father && !_weAre.mother) {
-            _eventing.send('dialogr.close');
+                _eventing.send('dialogr.close');
            } else if (_weAre.mother) {
-               
                for (var i=0; i < _dialogs.length; i++) {
                 if (_dialogs[i].id == _currentDialog.id) {
                     _dialogs.splice(i, 1);

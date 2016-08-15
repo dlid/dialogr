@@ -66,18 +66,24 @@
             headerElement =  getElementSize(dialogElement__header),
             contentElement =  getElementSize(dialogElement__content),
             footerElement =  getElementSize(dialogElement__footer),
-            loaderElement = getElementSize(dialogElement__loader);
+            loaderElement = getElementSize(dialogElement__loader),
+            dialogInnerWidth = dialogSize.innerWidth(),
+            dialogInnerHeight = dialogSize.innerHeight(),
+            footerHeight = footerElement.height(),
+            headerHeight = headerElement.height();
 
-        contentElement.setWidth( dialogSize.innerWidth() );
-        var x =  dialogSize.innerHeight() - footerElement.height() - headerElement.height();
+            getInnerWidth()
 
-        contentElement.setHeight( dialogSize.innerHeight() - footerElement.height() - headerElement.height()  );
-        footerElement.setTop( contentElement.height() + headerElement.height() );
-        footerElement.setWidth( dialogSize.innerWidth() );
+        contentElement.setWidth( dialogInnerWidth );
+        var x =  dialogInnerHeight - footerHeight - headerHeight;
+
+        contentElement.setHeight( dialogInnerHeight - footerHeight - headerHeight  );
+        footerElement.setTop( contentElement.height() + headerHeight );
+        footerElement.setWidth( dialogInnerWidth );
 
 
-        loaderElement.setTop((dialogSize.innerHeight() / 2) - (loaderElement.height()/2));
-        loaderElement.setLeft((dialogSize.innerWidth() / 2) - (loaderElement.width()/2));
+        loaderElement.setTop((dialogInnerHeight / 2) - (loaderElement.height()/2));
+        loaderElement.setLeft((dialogInnerWidth / 2) - (loaderElement.width()/2));
     }
 
     function calculateDialogSize(elements, dialogOptions) {
@@ -96,7 +102,7 @@
              if (parseInteger(dialogOptions.maxWidth) > 0 && parseInteger(actualW) > parseInt(dialogOptions.maxWidth)) {
             width = dialogOptions.maxWidth;
             left =  Math.ceil( (window.innerWidth/2) - (parseInt(width,10) / 2)) + STYLE_UNIT_PIXELS;
-            if(getStyle(elements.dialog, "box-sizing") != "border-box") {
+            if(getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
                 iw = (parseInteger(width) ) + STYLE_UNIT_PIXELS;
             } else {
                 iw = (parseInteger(width) - padding.r - padding.l - borders.l - borders.r ) + STYLE_UNIT_PIXELS;
@@ -104,7 +110,7 @@
         }
 
             
-        if (getStyle(elements.dialog, "box-sizing") != "border-box") {
+        if (getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
             width = (parseInteger(width) - padding.l - padding.r - borders.l - borders.r - margins.l - margins.r) + STYLE_UNIT_PIXELS;
             height = (parseInteger(height) - padding.t - padding.b - borders.t - borders.b - margins.t - margins.b) + STYLE_UNIT_PIXELS;
         }
@@ -121,7 +127,7 @@
             left = 0;
             top = 0;
 
-            if(getStyle(elements.dialog, "box-sizing") != "border-box") {
+            if(getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
                 iw = (parseInteger(width) - padding.r ) + STYLE_UNIT_PIXELS;
             } else {
                 iw =  (parseInteger(width) - padding.r - padding.l - borders.l - borders.r ) + STYLE_UNIT_PIXELS;
@@ -129,7 +135,7 @@
 
        
         } else {
-            if(getStyle(elements.dialog, "box-sizing") != "border-box") {
+            if(getStyle(elements.dialog, STYLE_BOXSIZING) != STYLE_BORDERBOX) {
                 iw = (parseInteger(width) ) + STYLE_UNIT_PIXELS;
             } else {
                 iw = (parseInteger(width) - padding.r - padding.l - borders.l - borders.r ) + STYLE_UNIT_PIXELS;

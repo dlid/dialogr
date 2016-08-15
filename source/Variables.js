@@ -40,5 +40,12 @@
     STYLE_POSITION_FIXED = 'fixed',
     STYLE_POSITION_ABSOLUTE = 'absolute',
     STYLE_VISIBILITY_HIDDEN = "hidden",
+    STYLE_VISIBILITY_VISIBLE = 'visible',
     STYLE_UNIT_PIXELS = 'px',
-    ELEMENT_TYPE_DIV = 'div';
+    ELEMENT_TYPE_DIV = 'div',
+    STYLE_OVERFLOW_Y = 'overflow-y',
+    ATTR_DISABLED = 'disabled',
+    STYLE_BORDERBOX = 'border-box',
+    STYLE_BOXSIZING = "box-sizing",
+    STYLE_WIDTH = "width",
+    STYLE_HEIGHT = "height";

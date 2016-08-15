@@ -43,19 +43,47 @@ function invoke(dialogId, name, data) {
     }
 }
 
-function open(optionsOrUrl, options, id, openingDialogId) {
-        
+function extendWithInternalOptions(o) {
+    return extend({
+        $$ : {
+            isFather : true,
+            isMother : true,
+            id : null,
+            byFather : false
+        }
+    }, o);
+}
+
+function open(options) {
+
+    var id = null,
+        openingDialogId = null;
+    options = extendWithInternalOptions(options);
+
+    if (options.$$.byFather !== false) {
+        openingDialogId = options.$$.byFather;
+        id = options.$$.id;
+    }
+
     var dialogInstance,
         openDialogs = _dialogs.slice(0);
-            options = options || {};
+        options = options || {};
+    
     if (_dialogContext) {
-        dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, true);
+        options.$$.isMother = false;
+        dialogInstance = new DialogrDialog(options, {}, true);
 
         _dialogContext.invoke('dialogr.open', {
-            optionsOrUrl : optionsOrUrl,
-            options : options,
-            newDialogId : dialogInstance.id,
-            openerId : _dialogContextDialogId
+            options : extend({}, options, 
+                    { 
+                        $$ : { 
+                            id : dialogInstance.id, 
+                            byFather : _dialogContextDialogId
+                        }
+                    }
+                ),
+                newDialogId : dialogInstance.id,
+                openerId : _dialogContextDialogId
         }).then(function(d) {
 
             dialogInstance.$$e.setDialogrId(dialogInstance.id);
@@ -72,8 +100,7 @@ function open(optionsOrUrl, options, id, openingDialogId) {
             }
             options.zIndex = maxZindex + 10;
         }
-
-        dialogInstance = new DialogrDialog(optionsOrUrl, options, {}, id, openingDialogId);
+        dialogInstance = new DialogrDialog(options, {}, id, openingDialogId);
         
     }
 

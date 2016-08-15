@@ -11,10 +11,11 @@
 
 	function newDemo() {
 
-		dialogr.open('frame_content.html', {
-			width : 300, height : 100,
-			param : { name : name },
-			buttons : ["mhm?!"]
+		dialogr.open({
+			url : 'frame_content.html',
+			width : 300, 
+			height : 100,
+			param : { name : name }
 		})
 		.on('button_0', function() {
 			alert("mm");
@@ -29,33 +30,27 @@
 
 	}
 
+	var _newDemo2Result = null;
 	function newDemo2() {
 
-		dialogr.open('frame2_content.html', {
-			//buttons : ["hej", "ost", "lakrits"]
+		dialogr.open({
+			url : 'frame2_content.html',
 			className : 'dialogr2',
 			width : '600px',
 			height: 400,
 			minHeight : '280px',
 			maxWidth : 400,
 			title : "Profile",
-			buttons : {
-				"save" : { text : "Save" },
-				"discard" : {text : "Cancel"},
-				"apply" : { text : "Apply", disabled : true }
-			}
+			param : _newDemo2Result
 		})
-		.on('name_updated_was_it', function(resolvedNameFromDialog) {
-			var d = dialogr.deferred();
-			//document.getElementById('name').innerText = resolvedNameFromDialog;
-			name = resolvedNameFromDialog;
-			setTimeout(function() {
-				d.resolve();
-			}, 1500);
-			return d.promise();
-		})
-		.done(function() {
-			alert("yes");
+		.done(function(r) {
+			_newDemo2Result = r;
+			h = JSON.stringify(r, null, 2);
+
+			h = h.replace(/</g, '&lt;');
+			h = h.replace(/>/g, '&gt;');
+			document.querySelector('.result').innerHTML = "<pre>"+ h +"</pre>";
+
 		})
 	}
 
@@ -73,10 +68,16 @@
 
 	</script>
 	<style type="text/css">
-	body {
-		background-color: whitesmoke;margin:0;padding:0;
-		font-family: helvetica,sans-serif;
-	}
+		body {
+			background-color: whitesmoke;margin:0;padding:0;
+			font-family: helvetica,sans-serif;
+		}
+		h1 {
+			font-size: 4em;
+		}
+		h1 span {
+			color: #414141;
+		}
 		.wrapper, .hero h1, .header h2 {
 			max-width: 800px;
 			margin: 0 auto;
@@ -85,6 +86,8 @@
 		.header {
 			background-color: #eaeaea;
 			padding: 24px;
+		}
+		pre {
 		}
 		.hero {
 			font-family: arial;
@@ -107,76 +110,13 @@
 	
 <body>
 
-	<div class="hero">
-		<h1>Dialog<span>r</span></h1>
-	</div>
-	<div class="header">
-		<h2>Introduction</h2>
-	</div>
-
 	<div class="wrapper">
+		<h1>Dialogr <span>tests</span></h1>
 		<ol>
-			<li><a href="javascript:newDemo()">Simple form dialog</a> to set a variable value (<span id="name"></span>) </li>
-			<li><a href="javascript:newDemo2()">Dialog with buttons</a> </li>
+			<li><a href="javascript:newDemo()">Name input dialog</a> to set a variable value (<span id="name"></span>) </li>
+			<li><a href="javascript:newDemo2()">User Settings dialog</a><div class="result"></div></li>
 		</ol>
 	</div>
 
-	<div class="wrapper">
-	<p>Dialogr is a scaled down <strong>editors dialog</strong>.</p>
-	<p><strong>As an</strong> editor<br /><strong>I wanted</strong> to open a dialog for a more advanced way to manage tags for a page<br /><strong>so that</strong> I have a clean and stylish page and also advanced tag management abilities - that's why Dialogr was created.</p>
-	<hr />
-	<p>As a developer I sometimes need to edit advanced data in a hidden field.
-	The easiest way is sometimes to open an external page with a more advanced editor in a dialog.
-	Dialogr is my attempt to create a small utility library to let me do just this.</p>
-	<ol>
-		<li>Easy to pass parameters to the dialog frame
-			<ol>
-				<li>Bind form elements automatically</li>
-			</ol>
-		</li>
-		<li>Easy to return values to the opening page
-			<ol>
-				<li>Update form element values automatically</li>
-			</ol>
-		</li>
-		<li>Responsive
-		<ol>
-			<li>You can define a dialog size</li>
-			<li>Dialogs will become fulls screen when window is smaller</li>
-		</ol></li>
-		<li>One dialog open at a time</li>
-	</ol>
-
-	<pre>&lt;script&gt;
-dialogr.open({
- url : 'frame_content.html',
- width : "700px", height : "300px",
- args : {
-  "arguments" : "can easily be sent to an iframe "
- }
-});
-&lt;/script&gt;</pre>
-	<p>
-		<a href="javascript:demoDialog();">Launch example</a>
-	</p>
-			</div>
-	<div class="header">
-		<h2>Bound fields</h2>
-	</div>
-	<div class="wrapper">
-
-	
-	<p>You can automatically connect fields as arguments using fieldArgs.</p>
-	<pre>dialogr.open({
- fieldArgs : {
-  boundArgument' : '#tbxName'
-})</pre>
-	<p>
-		<a href="javascript:demoDialog_fieldTest();">field test</a> 
-		<input type="text" id="tbxName" value="A text field" />
-		
-	</p>
-
-</div>
 </body>
 </html>
