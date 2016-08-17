@@ -89,16 +89,18 @@
             _eventing.setNamedTarget('dialog', e.source);
 
             if (!isUndefined(data.options)) {
+                console.warn("before", JSON.stringify(_dialogOptions) );
 
-                if (data.options.width) {
+                if (data.options.width && !_dialogOptions.$$.raw.width) {
                     updateSize = true;
                     _dialogOptions.width = normalizeSize(data.options.width, getInnerWidth());
                 }
-                if (data.options.height) {
+                if (data.options.height&& !_dialogOptions.$$.raw.height) {
                     updateSize = true;
                     _dialogOptions.height = normalizeSize(data.options.height, getInnerWidth());
                 }
-                if (data.options.buttons) {
+
+                if (data.options.buttons && !_dialogOptions.$$.raw.buttons) {
                     updateSize = true;
                     _dialogOptions.buttons = data.options.buttons;
                     _elements.createButtons(_dialogOptions);
@@ -192,9 +194,6 @@
         this.block = function() {};
         this.unblock = function() {};
         this.close = function() {
-            //if (openerDialogId) {
-            //    _eventing.send('dialogr.close');
-           // }
             if (_dialogs.length == 1) {
                 for (var i=0; i < _disableScrollForElements.length; i++) {
                     setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : _originalStyles[i]});
@@ -238,7 +237,6 @@
         };
 
         this.on = function(name, callback) {
-        //            console.warn(_currentDialog.id, "LISTEN FOR", name);
             _eventing.on(name, callback);
             return _currentDialog;
         };

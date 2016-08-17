@@ -1332,16 +1332,18 @@
               _eventing.setNamedTarget('dialog', e.source);
 
               if (!isUndefined(data.options)) {
+                  console.warn("before", JSON.stringify(_dialogOptions) );
 
-                  if (data.options.width) {
+                  if (data.options.width && !_dialogOptions.$$.raw.width) {
                       updateSize = true;
                       _dialogOptions.width = normalizeSize(data.options.width, getInnerWidth());
                   }
-                  if (data.options.height) {
+                  if (data.options.height&& !_dialogOptions.$$.raw.height) {
                       updateSize = true;
                       _dialogOptions.height = normalizeSize(data.options.height, getInnerWidth());
                   }
-                  if (data.options.buttons) {
+
+                  if (data.options.buttons && !_dialogOptions.$$.raw.buttons) {
                       updateSize = true;
                       _dialogOptions.buttons = data.options.buttons;
                       _elements.createButtons(_dialogOptions);
@@ -1654,12 +1656,47 @@
               isFather : true,
               isMother : true,
               id : null,
-              byFather : false
+              byFather : false,
+
+              // Store the actual data sent in by the user
+              raw : extend({}, o)
           }
       }, o);
   }
 
+  /**
+   * Parse arguments-array into a unified options object
+   * Will allow the following combinations:
+   * (options)
+   * (url)
+   * (url, param)
+   * (url, param, options)
+   *
+   * @param      {object}  args    The arguments
+   * @return     {object}  A single options object
+   */
+  function mergeOpenArgumentsToOptionsObject(args) {
+      var options = {}, l = args.length, typeTmp;
+      if (l > 0) {
+          typeTmp = typeof args[0];
+          if (typeTmp === "string") {
+              options.url = args[0];
+              if (l > 1) {
+                  options.param = args[1];
+                  if (l > 2) {
+                      options = extend({}, args[2], options);
+                  }
+              }
+          } else if (typeTmp === "object") {
+              options = args[0];
+          }
+      }
+      return options;
+  }
+
   function open(options) {
+
+      options = mergeOpenArgumentsToOptionsObject(arguments);
 
       var id = null,
           openingDialogId = null;

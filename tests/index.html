@@ -11,12 +11,7 @@
 
 	function newDemo() {
 
-		dialogr.open({
-			url : 'frame_content.html',
-			width : 300, 
-			height : 100,
-			param : { name : name }
-		})
+		dialogr.open('frame_content.html', { name : name } )
 		.on('button_0', function() {
 			alert("mm");
 		})

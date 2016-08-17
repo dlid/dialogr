@@ -145,6 +145,9 @@
         return {w : width, h : height, l: left, t : top, iw : iw};
     }
 
+    function invokeCreateElementCallback(element, dialogOptions) {
+
+    }
 
     ///
     /// Create and return the DOM elements for the new dialog
@@ -170,6 +173,7 @@
             zIndex : dialogOptions.zIndex,
             display : STYLE_DISPLAY_BLOCK
         });
+        invokeCreateElementCallback('dialog',dialogElement,dialogOptions);
 
         dialogElement__overlay = setAttribute(setStyle(createElement(ELEMENT_TYPE_DIV), {
             position : STYLE_POSITION_FIXED,
@@ -183,6 +187,7 @@
             "data-dialogr-id" : id,
             "class" : className + "__overlay"
         });
+        invokeCreateElementCallback('overlay',dialogElement,dialogOptions);
 
         dialogElement__content = setStyle(
             setAttribute(
@@ -196,8 +201,6 @@
                 visibility : STYLE_VISIBILITY_HIDDEN
             }
         );
-
-
 
         dialogElement__loaderOverlay = setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {
             "class" : className + "__loader-overlay"

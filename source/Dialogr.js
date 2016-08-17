@@ -49,12 +49,47 @@ function extendWithInternalOptions(o) {
             isFather : true,
             isMother : true,
             id : null,
-            byFather : false
+            byFather : false,
+
+            // Store the actual data sent in by the user
+            raw : extend({}, o)
         }
     }, o);
 }
 
+/**
+ * Parse arguments-array into a unified options object
+ * Will allow the following combinations:
+ * (options)
+ * (url)
+ * (url, param)
+ * (url, param, options)
+ *
+ * @param      {object}  args    The arguments
+ * @return     {object}  A single options object
+ */
+function mergeOpenArgumentsToOptionsObject(args) {
+    var options = {}, l = args.length, typeTmp;
+    if (l > 0) {
+        typeTmp = typeof args[0];
+        if (typeTmp === "string") {
+            options.url = args[0];
+            if (l > 1) {
+                options.param = args[1];
+                if (l > 2) {
+                    options = extend({}, args[2], options);
+                }
+            }
+        } else if (typeTmp === "object") {
+            options = args[0];
+        }
+    }
+    return options;
+}
+
 function open(options) {
+
+    options = mergeOpenArgumentsToOptionsObject(arguments);
 
     var id = null,
         openingDialogId = null;
