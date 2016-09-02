@@ -145,8 +145,11 @@
         return {w : width, h : height, l: left, t : top, iw : iw};
     }
 
-    function invokeCreateElementCallback(element, dialogOptions) {
-
+    function invokeCreateElementCallback(name, element, dialogOptions) {
+        var fn = dialogOptions.createElement;
+        if (typeof fn === "function") {
+            fn(name, element);
+        }
     }
 
     ///
@@ -187,7 +190,7 @@
             "data-dialogr-id" : id,
             "class" : className + "__overlay"
         });
-        invokeCreateElementCallback('overlay',dialogElement,dialogOptions);
+        invokeCreateElementCallback('overlay',dialogElement__overlay,dialogOptions);
 
         dialogElement__content = setStyle(
             setAttribute(
@@ -201,6 +204,7 @@
                 visibility : STYLE_VISIBILITY_HIDDEN
             }
         );
+        invokeCreateElementCallback('content',dialogElement__content,dialogOptions);
 
         dialogElement__loaderOverlay = setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {
             "class" : className + "__loader-overlay"
@@ -212,6 +216,7 @@
             display : STYLE_DISPLAY_BLOCK,
             visibility : 'visible'
         });
+        invokeCreateElementCallback('loaderOverlay',dialogElement__loaderOverlay,dialogOptions);
 
         dialogElement__loader = setInnerHtml(setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {
             "class" : className + "__overlay"
@@ -220,6 +225,7 @@
             backgroundColor : '#fff',
             display : STYLE_DISPLAY_BLOCK
         }), 'Loading...');
+        invokeCreateElementCallback('loader',dialogElement__loader,dialogOptions);
 
         dialogElement__footer = setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {
             class : className + "__footer"
@@ -227,6 +233,7 @@
             position : STYLE_POSITION_ABSOLUTE,
             display : STYLE_DISPLAY_BLOCK
         });
+        invokeCreateElementCallback('footer',dialogElement__footer,dialogOptions);
 
         dialogElement__header = setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {
             class : className + "__header"
@@ -234,6 +241,7 @@
             overflow : STYLE_VISIBILITY_HIDDEN,
             display : STYLE_DISPLAY_BLOCK
         });
+        invokeCreateElementCallback('header',dialogElement__header,dialogOptions);
 
         function createButton(buttonName, buttonHtml) {
             return setInnerHtml(

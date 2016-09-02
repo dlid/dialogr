@@ -11,7 +11,17 @@
 
 	function newDemo() {
 
-		dialogr.open('frame_content.html', { name : name } )
+		dialogr.open('frame_content.html', { name : name }, {
+			height : 200,
+			title : 'x',
+			createElement : function(name, elm) {
+				if (name == "footer") { 
+					elm.innerHTML = "<div style='border-bottom: 2px solid orange;padding-bottom: 4px; margin-bottom: 1em;'>I can alter the footer!</div>"
+				} else if (name == "header") {
+					elm.style.fontSize = '11px'
+				}
+			}
+		} )
 		.on('button_0', function() {
 			alert("mm");
 		})
