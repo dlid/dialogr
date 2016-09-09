@@ -51,7 +51,9 @@
                 }
             }); 
 
-        } else if (_weAre.mother) {
+        }
+
+        if (_weAre.mother) {
 
             _eventing.on('dialogr.disable-button', function(buttonName) {
                 if (_elements.buttons[buttonName]) {
@@ -103,7 +105,7 @@
                 if (data.options.buttons && !_dialogOptions.$$.raw.buttons) {
                     updateSize = true;
                     _dialogOptions.buttons = data.options.buttons;
-                    _elements.createButtons(_dialogOptions);
+                    _elements.buttons = _elements.createButtons(_dialogOptions);
                 }
 
                 if (updateSize) {

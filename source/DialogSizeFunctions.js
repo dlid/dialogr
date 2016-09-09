@@ -289,7 +289,7 @@
             }
 
             setStyle(dialogElement__footer, {display : buttonCount === 0 ? 'none' : 'block'});
-
+            return dialogElement__buttons;
         }
 
 
