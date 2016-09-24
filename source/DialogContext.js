@@ -26,7 +26,7 @@ function DialogContext(openingWindow, successCallback, failCallback, options) {
             fatherIdentified : true,
             childId : data.dialogrId
         };
-        _context.param = data.param || {};
+        _context.param = extend({}, u.params,  data.param || {});
         _dialogContextDialogId = dialogrIdParameter;
         
         if (data.opener) {
