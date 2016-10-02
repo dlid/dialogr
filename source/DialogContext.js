@@ -59,9 +59,7 @@ function DialogContext(openingWindow, successCallback, failCallback, options) {
     this.$$w = openingWindow;
     //this.$$el = _elements;
 
-    this.enable = function(button) {
-        _context.trigger('dialogr.enable-button', button);
-    };
+    this.enable = function(button) {};
     this.disable = function(button) {
         _context.trigger('dialogr.disable-button', button);
     };
