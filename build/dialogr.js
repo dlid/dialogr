@@ -1561,7 +1561,9 @@
       this.$$w = openingWindow;
       //this.$$el = _elements;
 
-      this.enable = function(button) {};
+      this.enable = function(button) {
+          _context.trigger('$i', button);
+      };
       this.disable = function(button) {
           _context.trigger('$h', button);
       };
