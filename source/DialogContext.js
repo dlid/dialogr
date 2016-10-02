@@ -26,7 +26,7 @@ function DialogContext(openingWindow, successCallback, failCallback, options) {
             fatherIdentified : true,
             childId : data.dialogrId
         };
-        _context.param = data.param || {};
+         _context.param = extend({}, u.params,  data.param || {});
         _dialogContextDialogId = dialogrIdParameter;
         
         if (data.opener) {
@@ -59,7 +59,9 @@ function DialogContext(openingWindow, successCallback, failCallback, options) {
     this.$$w = openingWindow;
     //this.$$el = _elements;
 
-    this.enable = function(button) {};
+    this.enable = function(button) {
+        _context.trigger('dialogr.enable-button', button);
+    };
     this.disable = function(button) {
         _context.trigger('dialogr.disable-button', button);
     };

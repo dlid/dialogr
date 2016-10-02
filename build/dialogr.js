@@ -1528,7 +1528,7 @@
               fatherIdentified : true,
               childId : data.dialogrId
           };
-          _context.param = data.param || {};
+           _context.param = extend({}, u.params,  data.param || {});
           _dialogContextDialogId = dialogrIdParameter;
           
           if (data.opener) {
@@ -1561,7 +1561,9 @@
       this.$$w = openingWindow;
       //this.$$el = _elements;
 
-      this.enable = function(button) {};
+      this.enable = function(button) {
+          _context.trigger('$i', button);
+      };
       this.disable = function(button) {
           _context.trigger('$h', button);
       };
