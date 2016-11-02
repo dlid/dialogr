@@ -1367,11 +1367,12 @@
                   }
               }
 
-
+              var param = _dialogOptions.param;
+              if (!isUndefined(param) && param.param) param = param.param;
               deferred.resolve(extend({
                   openerUrl : window.location.href.toString(),
                   dialogrId : _currentDialog.id,
-                  param : _dialogOptions.param
+                  param : param
               }, {
                   opener : openerDialogId
               }));
