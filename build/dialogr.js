@@ -1,4 +1,4 @@
-  /*! dialogr v0.0.8 © 2016 David Lidström. https://docs.dlid.se/dialogr License: MIT */
+  /*! dialogr v0.0.9 © 2017 David Lidström. https://docs.dlid.se/dialogr License: MIT */
   (function(win) {
     var dialogrDefaults = {
           zIndex : 1500,
@@ -1148,7 +1148,7 @@
               position : STYLE_POSITION_ABSOLUTE,
               backgroundColor : '#fff',
               display : STYLE_DISPLAY_BLOCK
-          }), 'Loading...');
+          }), dialogOptions.loadingText ? dialogOptions.loadingText : 'Loading...');
           invokeCreateElementCallback('loader',dialogElement__loader,dialogOptions);
 
           dialogElement__footer = setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {

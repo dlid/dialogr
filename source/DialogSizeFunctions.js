@@ -224,7 +224,7 @@
             position : STYLE_POSITION_ABSOLUTE,
             backgroundColor : '#fff',
             display : STYLE_DISPLAY_BLOCK
-        }), 'Loading...');
+        }), dialogOptions.loadingText ? dialogOptions.loadingText : 'Loading...');
         invokeCreateElementCallback('loader',dialogElement__loader,dialogOptions);
 
         dialogElement__footer = setStyle(setAttribute(createElement(ELEMENT_TYPE_DIV), {

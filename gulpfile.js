@@ -14,7 +14,7 @@ var gulp = require('gulp'),
  var to_inject = function()
     {
     	var headerComment = "/*! " + package.name 
-      + " v" + package.version + " © 2016 " + package.author 
+      + " v" + package.version + " © 2017 " + package.author 
       + ". " + webPage
    		+ " License: "+package.license 
   		+ " */\n";

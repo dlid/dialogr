@@ -1,6 +1,6 @@
 {
   "name": "dialogr",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Administrator Dialog JavaScript Library",
   "homepage": "https://docs.dlid.se/dialogr",
   "main": "dialogr.js",

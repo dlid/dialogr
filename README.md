@@ -24,12 +24,13 @@ The following external modules are included and subject to its own license.
 
 Make sure to download and extract the [latest pre-built release](https://github.com/dlid/dialogr/releases). If you do not download a tagged release you may get code that is not yet fully tested.
 
-Install the devDependencies and start the server.
 
 ```sh
-$ cd dialogr
+$ npm install gulp
 $ npm install gulp -g
-$ npm install -d
+$ npm install gulp-util
+$ npm install gulp-util -g
+$ npm install -g gulp-cli
 ```
 
 To build the scripts, run the default Gulp task.
