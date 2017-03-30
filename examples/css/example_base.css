@@ -1,4 +1,18 @@
+/*
+	Filename: example_base.css
+	Description: Contains the base CSS used for all examples
+	Author: David Lidström
+*/
 body {
-			background-color: whitesmoke;margin:0;padding:0;
-			font-family: helvetica,sans-serif;
-		}
+	background-color: whitesmoke;
+	font-family: helvetica,sans-serif;
+}
+
+.example {
+	font-weight: normal;
+	padding: 12px;
+	border-bottom: 1px solid #ccc;
+}
+.example h1 {
+	margin-top:0;
+}

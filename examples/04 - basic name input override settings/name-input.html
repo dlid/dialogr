@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>dlid/dialogr example 01</title>
+	<link href='../css/dialogcontent_base.css' rel='stylesheet' type='text/css'>
+	<script src="../../build/dialogr.js"></script>
+	<script src="../js/example_base.js"></script>
+	<script type="text/javascript">
+
+		onLoad(function(){
+
+			var nameInput = document.getElementById('nameInput'); 
+			nameInput.focus();
+
+			// in "ready" we define the buttons and size of the dialog
+			dialogr.ready({
+				width : 300,
+				height : 130,
+				title : 'ooh',
+				buttons : {
+					"ok" : {text : "Okay then", disabled : true},
+					"cancel" : {text : "Cancel"}
+				}
+			}).done(function(dlgCtx) {
+
+				console.log("[dialogr] dialogContext", dlgCtx);
+
+				// If we get a name parameter, set the field value
+				if (dlgCtx.param.name) {
+					nameInput.value = dlgCtx.param.name;
+					nameInput.select();
+				}
+
+				// We use the same submit_dialog function both then the user clicks
+				// the ok-button, and also when the user press Enter in the textbox
+				function submit_dialog() {
+					var name = nameInput.value;					
+
+					if (name.length > 0) {
+		        dlgCtx.resolve(name);
+		      }
+		    }
+
+		    // Simple timer to enable/disable ok-button
+		   setInterval(function() {
+					if (nameInput.value == "") {
+		    		dlgCtx.disable('button_ok');
+		    	} else {
+		    		dlgCtx.enable('button_ok');
+		    	}
+		    }, 200)
+
+		    // Check for pressing Enter in textbox
+		    addEventHandler(nameInput, 'keydown', function(e) { 
+		    	if (e.keyCode == 13) {
+		    		submit_dialog();
+		    	}
+		    });
+
+
+		    // Hook up button events
+		    dlgCtx
+		    .on('button_ok', submit_dialog)
+		    .on('button_cancel', dlgCtx.reject);
+
+		  });
+
+		});
+
+	</script>
+</head>
+<body>
+
+	<div class="dialog_form">
+		<fieldset>
+			<div class="form_element">
+				<legend>Profile</legend>
+				<label>Name</label> <input id="nameInput" type="text" maxlength="40">
+			</div>
+		</fieldset>
+	</div>
+
+</body>

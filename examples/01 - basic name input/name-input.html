@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>dlid/dialogr example 01</title>
+	<link href='../css/dialogcontent_base.css' rel='stylesheet' type='text/css'>
+	<script src="../../build/dialogr.js"></script>
+	<script src="../js/example_base.js"></script>
+	<script type="text/javascript">
+
+		onLoad(function(){
+
+			var nameInput = document.getElementById('nameInput'); 
+			nameInput.focus();
+
+			// in "ready" we define the buttons and size of the dialog
+			dialogr.ready({
+				width : 300,
+				height : 120,
+				title : 'ooh',
+				buttons : {
+					"ok" : {text : "Okay then"},
+					"cancel" : {text : "Cancel"}
+				}
+			}).done(function(dlgCtx) {
+
+					dlgCtx.on('button_ok', function() {
+						var name = nameInput.value;					
+
+						if (name.length > 0) {
+		        // We resolve the promise with the data we want to send to the opener
+		        dlgCtx.resolve(name);
+		      } else {
+		      	alert("Enter your name first");
+		      }
+		    })
+				.on('button_cancel', dlgCtx.close);
+
+			});
+
+		});
+
+	</script>
+</head>
+<body>
+
+	<div class="dialog_form">
+		<fieldset>
+			<div class="form_element">
+				<legend>Profile</legend>
+				<label>Name</label> <input id="nameInput" type="text" maxlength="40">
+			</div>
+		</fieldset>
+	</div>
+
+</body>

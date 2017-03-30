@@ -261,7 +261,8 @@
             var buttonCount = 0,
                 btn,
                 keys,
-                existing = dialogElement__footer.querySelectorAll('.dialogr__button');
+                existing = dialogElement__footer.querySelectorAll('.dialogr__button'),
+                o;
 
                 for (var i=0; i < existing.length; i++) {
                     existing[i].parentNode.removeChild(existing[i]);
@@ -280,8 +281,12 @@
                 } else if (typeof dialogOptions.buttons === "object") {
                     keys = getKeys(dialogOptions.buttons)
                     for (i=0; i < keys.length; i++) {
-                        btn = createButton(keys[i], dialogOptions.buttons[keys[i]].text);
+                        o = dialogOptions.buttons[keys[i]];
+                        btn = createButton(keys[i], o.text);
                         appendChildren(dialogElement__footer, [btn]);
+                         if (o.disabled == true) {
+                            setAttribute(btn, {disabled : 'disabled'})
+                          }
                         dialogElement__buttons["button_" + keys[i]] = btn;
                         buttonCount++;
                     }

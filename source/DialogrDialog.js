@@ -91,8 +91,6 @@
             _eventing.setNamedTarget('dialog', e.source);
 
             if (!isUndefined(data.options)) {
-                console.warn("before", JSON.stringify(_dialogOptions) );
-
                 if (data.options.width && !_dialogOptions.$$.raw.width) {
                     updateSize = true;
                     _dialogOptions.width = normalizeSize(data.options.width, getInnerWidth());

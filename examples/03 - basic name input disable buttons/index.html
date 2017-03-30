@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>dialogr 03 - basic name input disable buttons</title>
+	<link href='../css/example_base.css' rel='stylesheet' type='text/css'>
+	<link href='../css/dialogr.css' rel='stylesheet' type='text/css'>
+	<script src="../../build/dialogr.js"></script>
+	<script src="../js/example_base.js"></script>
+	<script type="text/javascript">
+		var first = true;
+
+		function openNameDialog() {
+
+			var nameDisplay = document.getElementById('nameDisplay'),
+				parameters = {
+					name : first ? "" : nameDisplay.innerText
+				};
+
+			dialogr.open("name-input.html", parameters)	
+				.done(function(result) {
+
+					// The dialog returned a successful result
+					nameDisplay.innerText = result;
+
+					first = false;
+				});
+
+		}
+
+	</script>
+</head>
+<body>
+	<div class="example">
+	<h1>03 - Name Input and enabling/disabling dialog buttons</h1>
+
+		<p>In this basic example a dialog will open when you click the link below.</p>
+		<p>The result of the dialog will be retreived and the link is updated with the resulting text from the dialog.</p>
+
+		<ul>
+			<li>The dialog OK button is now disabled unless a proper name has been entered</li>
+		</ul>
+
+	</div>
+
+	<p>Hi <a id="nameDisplay" href="javascript:openNameDialog()">[click to set name]</a></p>
+
+</body>
