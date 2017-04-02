@@ -3,18 +3,6 @@
     /*! Deferred (https://github.com/warpdesign/deferred-js) */
 
 
-    //
-    // We always want the width and height in pixels
-    //
-    function normalizeOptions(options) {
-        options.width = normalizeSize(options.width, window.innerWidth);
-        options.height = normalizeSize(options.height, window.innerHeight);
-
-        options.left =  Math.ceil( (window.innerWidth/2) - (parseInt(options.width,10) / 2)) + STYLE_UNIT_PIXELS;
-        options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + STYLE_UNIT_PIXELS;
-
-        return options;
-    }
 
     function normalizeSize(sizeValue, containerSize) {
         var match;

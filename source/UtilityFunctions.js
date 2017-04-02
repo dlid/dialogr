@@ -18,6 +18,16 @@ function parseInteger(v) {
     return val;
 }
 
+/**
+ * This function will merge the dialog defined buttons with the ones used when opening the dialog
+ */
+function mergeDialogButtons(dialogButtons, openerButtons) {
+    console.warn("Dialog", dialogButtons)
+    console.warn("Opener", openerButtons)
+
+    return [];
+}
+
 function hashCode(str) {
     var hash = 0, i, chr, len;
     if (str.length === 0) return hash;
@@ -106,8 +116,31 @@ function parseUrl(url) {
 
 }
 
+function isArray(o) {
+    return o.constructor === Array;
+}
+
+function logError(message) {
+    console.error("[dialogr]", message);
+}
+
 function setQuerystringValue(url, params) {
     var u = parseUrl(url);
     u.params = extend({}, u.params, params);
     return makeUrl(u);
+}
+
+
+function getObjectKeys(o) {
+    var ret = [];
+    if (!Object.keys) {
+        for(var key in o) {
+            if (Object.prototype.hasOwnProperty.call(o,key)) {
+                ret.push(key);
+            }
+        }
+    } else {
+        ret = Object.keys(o);
+    }
+    return ret;
 }

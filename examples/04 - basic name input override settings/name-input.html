@@ -17,10 +17,10 @@
 				width : 300,
 				height : 130,
 				title : 'ooh',
-				buttons : {
-					"ok" : {text : "Okay then", disabled : true},
-					"cancel" : {text : "Cancel"}
-				}
+				buttons : [
+					{"name" : "ok", "text" : "Okay then", disabled : true},
+					{"name" : "cancel", "text" : "Cancel"}
+				] 
 			}).done(function(dlgCtx) {
 
 				console.log("[dialogr] dialogContext", dlgCtx);

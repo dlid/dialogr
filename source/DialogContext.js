@@ -14,6 +14,8 @@ function DialogContext(openingWindow, successCallback, failCallback, options) {
 
     _eventing.setDialogrId(dialogrIdParameter);
 
+    options = refineUserOptions(options);
+
     // Find the opening window.
     _eventing.await('dialogr.find-opener', {
         dialogUrl : window.location.toString(),

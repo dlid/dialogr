@@ -17,14 +17,13 @@
 				};
 
 			dialogr.open("name-input.html", parameters, {
-				buttons : {
-					$clear : false,
-					"hm" : {text : "Custom button"}
-				},
+				buttons : [
+					"apa"
+				], 
 				width : '500px'
 			})
-			.on('button_hm', function() {
-				// Aha, someone clicked on our custom button
+			.on('button_new', function() {
+				// Aha, someone clicked on our extra button
 				alert("Ja");
 			})
 			.done(function(result) {
@@ -36,6 +35,24 @@
 			});
 
 		}
+
+			dialogr.open("name-input.html", {}, {
+				buttons : [
+					"apa"
+				], 
+				width : '500px'
+			})
+			.on('button_new', function() {
+				// Aha, someone clicked on our extra button
+				alert("Ja");
+			})
+			.done(function(result) {
+
+				// The dialog returned a successful result
+				nameDisplay.innerText = result;
+
+				first = false;
+			});
 
 	</script>
 </head>

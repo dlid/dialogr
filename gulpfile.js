@@ -28,7 +28,7 @@ gulp.task('hint', function() {
           'build/_deferred_temp.js',
       		'source/utilityFunctions.js',
       		'source/EventingManager.js',
-      		'source/main.js',
+      		'source/main.js', 
 		])
 	 .pipe(jshint())
 	 .pipe(jshint.reporter('default'))
@@ -85,7 +85,6 @@ gulp.task('scripts', function() {
       .pipe(replace("'dialogr.unblock'", "'$m'"))
       .pipe(replace("'dialogr.open'", "'$n'"))
       .pipe(replace("'dialogr.find-opener'", "'$o'"))
-
 
       // Replace some long variable names with shorter values
       .pipe(replace("dialogElementOverlay_r", 'o'))

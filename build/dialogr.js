@@ -368,6 +368,16 @@
       return val;
   }
 
+  /**
+   * This function will merge the dialog defined buttons with the ones used when opening the dialog
+   */
+  function mergeDialogButtons(dialogButtons, openerButtons) {
+      console.warn("Dialog", dialogButtons)
+      console.warn("Opener", openerButtons)
+
+      return [];
+  }
+
   function hashCode(str) {
       var hash = 0, i, chr, len;
       if (str.length === 0) return hash;
@@ -456,10 +466,33 @@
 
   }
 
+  function isArray(o) {
+      return o.constructor === Array;
+  }
+
+  function logError(message) {
+      console.error("[dialogr]", message);
+  }
+
   function setQuerystringValue(url, params) {
       var u = parseUrl(url);
       u.params = extend({}, u.params, params);
       return makeUrl(u);
+  }
+
+
+  function getObjectKeys(o) {
+      var ret = [];
+      if (!Object.keys) {
+          for(var key in o) {
+              if (Object.prototype.hasOwnProperty.call(o,key)) {
+                  ret.push(key);
+              }
+          }
+      } else {
+          ret = Object.keys(o);
+      }
+      return ret;
   }
 
   /**
@@ -927,18 +960,6 @@
       /*! Deferred (https://github.com/warpdesign/deferred-js) */
 
 
-      //
-      // We always want the width and height in pixels
-      //
-      function normalizeOptions(options) {
-          options.width = normalizeSize(options.width, window.innerWidth);
-          options.height = normalizeSize(options.height, window.innerHeight);
-
-          options.left =  Math.ceil( (window.innerWidth/2) - (parseInt(options.width,10) / 2)) + STYLE_UNIT_PIXELS;
-          options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + STYLE_UNIT_PIXELS;
-
-          return options;
-      }
 
       function normalizeSize(sizeValue, containerSize) {
           var match;
@@ -1258,6 +1279,43 @@
       }
 
   // The actual instance of the dialog
+
+      
+
+      function refineUserOptions(options) {
+          var keys, i, b, p = 0;
+          // Fix sizes
+         /* options.width = normalizeSize(options.width, window.innerWidth);
+          options.height = normalizeSize(options.height, window.innerHeight);
+
+          options.left =  Math.ceil( (window.innerWidth/2) - (parseInt(options.width,10) / 2)) + STYLE_UNIT_PIXELS;
+          options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + STYLE_UNIT_PIXELS;
+  */
+          // Normalize buttons
+          if(isArray(options.buttons)) {
+              b = [];
+              for (i=0; i < options.buttons.length; i++) {
+                  if (typeof options.buttons[i] === "string") {
+                      b.push({name : "b" + i, text : options.buttons[i]});
+                  } else if (typeof options.buttons[i] === "object") {
+                      b.push(options.buttons[i]);
+                  } else {
+                      continue;
+                  }
+
+                  if (!b[b.length-1].index)
+                      b[b.length-1].index = p;
+                  p+=10;
+
+              }
+              options.buttons = b;
+          } else {
+           logError("buttons must be an array");   
+          }
+          console.warn("refinedOptions", options);
+          return options;
+      }
+
       function DialogrDialog(options, internalOptions, idFromDialogEvent, openerDialogId) {
 
           var _dialogOptions, 
@@ -1268,12 +1326,12 @@
               _isMother = options.$$.isMother,
               _thisId = null;
 
-          _dialogOptions = extend({}, dialogrDefaults, options);
+          _dialogOptions = extend({}, dialogrDefaults, refineUserOptions(options));
           _dialogOptions.maxWidth = normalizeSize(_dialogOptions.maxWidth, window.outerWidth);
           _dialogOptions.minWidth = normalizeSize(_dialogOptions.minWidth, window.outerWidth);
 
           if (isUndefined(_dialogOptions.url)) {
-              console.error("[dialogr] No url was given");
+              logError()("[dialogr] No url was given");
               return;
           }
 
@@ -1301,7 +1359,11 @@
               _eventing = new EventingManager(_thisId, null, fakeContext, openerDialogId);
               _eventing.setIdentity(_weAre),
               _disableScrollForElements = [];
-              
+          
+           /**
+            * If we are the father window we must listen for the event from the dialog
+            * that attempts to find the father.
+            */
            if (_weAre.father) {
               _eventing.on('$f', function(d, msg, msgEvent) {
                   if (_weAre.fatherTo == d.childId) {
@@ -1312,6 +1374,10 @@
 
           }
 
+          /**
+            * If we are the mother window we must listen for the events  from te dialog
+            * that affects the DOM elements for the dialog
+            */
           if (_weAre.mother) {
 
               _eventing.on('$h', function(buttonName) {
@@ -1340,15 +1406,27 @@
               });
           }
 
-          // Event to hook up the dialog window
-          //
+          /**
+           * Listen for the event that tries to connect the dialog frame to its opening window
+           * This is invoked from the dialog when dialogr.ready() is called
+           */
           _eventing.on('$o', function(data, msg, e) {
-              //_eventing.off('$o');
+
+              // Ignore opener events from other dialogs.
+              // It is unlikely there would be any, but you never know...
+              if (_thisId != data.id) {
+                  return;
+              }
+
               var updateSize = false,
                   deferred = self.Deferred();
               _eventing.setDialogrId(_currentDialog.id);
               _eventing.setNamedTarget('dialog', e.source);
-
+              
+              /**
+               * Let's merge the dialogr.open options with the dialogr.ready options
+               */
+              
               if (!isUndefined(data.options)) {
                   if (data.options.width && !_dialogOptions.$$.raw.width) {
                       updateSize = true;
@@ -1358,8 +1436,18 @@
                       updateSize = true;
                       _dialogOptions.height = normalizeSize(data.options.height, getInnerWidth());
                   }
+                  
+                  if (_dialogOptions.buttons) {
 
-                  if (data.options.buttons && !_dialogOptions.$$.raw.buttons) {
+                      // console.log("[dialogr] MERGE BUTTONS:", data.options.buttons, _dialogOptions.buttons);
+                      mergeDialogButtons(data.options.buttons, _dialogOptions.buttons);
+
+                      data.options.buttons = extend({}, data.options.buttons, _dialogOptions.buttons);
+                  }
+
+                  
+                  if (data.options.buttons) {
+
                       updateSize = true;
                       _dialogOptions.buttons = data.options.buttons;
                       _elements.buttons = _elements.createButtons(_dialogOptions);
@@ -1424,28 +1512,33 @@
                   return deferred.promise();
               });
 
-              _elements = createDialogElements(_thisId, _dialogOptions);
+              winloadDeferred.done(function() {
+                  console.warn("DOM Ready! Create elements");
 
-              i = document.getElementsByTagName('html');
-              if (i.length == 1) _disableScrollForElements.push(i[0]);
-              i = document.getElementsByTagName('body');
-              if (i.length == 1) _disableScrollForElements.push(i[0]);
+                  _elements = createDialogElements(_thisId, _dialogOptions);
 
-              var _originalStyles = [];
-              for (i=0; i < _disableScrollForElements.length; i++) {
-                  _originalStyles.push(getStyle(_disableScrollForElements[i], STYLE_OVERFLOW_Y));
-                  setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : STYLE_VISIBILITY_HIDDEN});
-              }
+                  i = document.getElementsByTagName('html');
+                  if (i.length == 1) _disableScrollForElements.push(i[0]);
+                  i = document.getElementsByTagName('body');
+                  if (i.length == 1) _disableScrollForElements.push(i[0]);
 
-              _elements.addToDom();
+                  var _originalStyles = [];
+                  for (i=0; i < _disableScrollForElements.length; i++) {
+                      _originalStyles.push(getStyle(_disableScrollForElements[i], STYLE_OVERFLOW_Y));
+                      setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : STYLE_VISIBILITY_HIDDEN});
+                  }
 
-                  onResize(_elements, _dialogOptions);
-          
+                  _elements.addToDom();
 
-              attachEventHandler(window, 'resize', onResizeEventHandler);
-              openedDialog = true;
+                      onResize(_elements, _dialogOptions);
+              
 
-              _elements.content.setAttribute('src', _dialogOptions.url);
+                  attachEventHandler(window, 'resize', onResizeEventHandler);
+                  openedDialog = true;
+
+                  _elements.content.setAttribute('src', _dialogOptions.url);
+
+              });
 
           }
         
@@ -1519,6 +1612,8 @@
       }
 
       _eventing.setDialogrId(dialogrIdParameter);
+
+      options = refineUserOptions(options);
 
       // Find the opening window.
       _eventing.await('$o', {
@@ -1620,8 +1715,7 @@
       };
       this.param = {};
       };
-
-
+  function Dialogr() {
 
   function trigger(dialogId, name, data) {
       for (var i=0; i < _dialogs.length; i++) {
@@ -1726,50 +1820,47 @@
           openDialogs = _dialogs.slice(0);
           options = options || {};
       
-      if (_dialogContext) {
-          options.$$.isMother = false;
-          dialogInstance = new DialogrDialog(options, {}, true);
+      
 
-          _dialogContext.invoke('$n', {
-              options : extend({}, options, 
-                      { 
-                          $$ : { 
-                              id : dialogInstance.id, 
-                              byFather : _dialogContextDialogId
+
+          if (_dialogContext) {
+              options.$$.isMother = false;
+              dialogInstance = new DialogrDialog(options, {}, true);
+
+              _dialogContext.invoke('$n', {
+                  options : extend({}, options, 
+                          { 
+                              $$ : { 
+                                  id : dialogInstance.id, 
+                                  byFather : _dialogContextDialogId
+                              }
                           }
-                      }
-                  ),
-                  newDialogId : dialogInstance.id,
-                  openerId : _dialogContextDialogId
-          }).then(function(d) {
+                      ),
+                      newDialogId : dialogInstance.id,
+                      openerId : _dialogContextDialogId
+              }).then(function(d) {
 
-              dialogInstance.$$e.setDialogrId(dialogInstance.id);
-              dialogInstance.$$e.setTargetWindow(win);
-              dialogInstance.$$e.setNamedTarget('mother', this.messageEvent.source);
-          });
-          return dialogInstance;
-      } else {
-          if (openDialogs.length > 0) {
-              var maxZindex = 0;
-              for (var i=0; i < openDialogs.length; i++){
-                  var zi = parseInteger(getStyle(openDialogs[i].$$el.dialog, 'z-index'));
-                  if (zi > maxZindex) maxZindex = zi;
+                  dialogInstance.$$e.setDialogrId(dialogInstance.id);
+                  dialogInstance.$$e.setTargetWindow(win);
+                  dialogInstance.$$e.setNamedTarget('mother', this.messageEvent.source);
+              });
+              return dialogInstance;
+          } else {
+              if (openDialogs.length > 0) {
+                  var maxZindex = 0;
+                  for (var i=0; i < openDialogs.length; i++){
+                      var zi = parseInteger(getStyle(openDialogs[i].$$el.dialog, 'z-index'));
+                      if (zi > maxZindex) maxZindex = zi;
+                  }
+                  options.zIndex = maxZindex + 10;
               }
-              options.zIndex = maxZindex + 10;
+              dialogInstance = new DialogrDialog(options, {}, id, openingDialogId);
+              
           }
-          dialogInstance = new DialogrDialog(options, {}, id, openingDialogId);
-          
-      }
 
       return dialogInstance;
 
   }
-
-
-      //
-      // The dialogcontext is what is used when inside a dialog
-      //
-      
 
   function ready(options) {
 
@@ -1795,8 +1886,6 @@
       return deferred.promise();
 
   }
-
-  function Dialogr() {
 
       // Should be removed when closed
       attachEventHandler(win, 'keydown', function(e) {

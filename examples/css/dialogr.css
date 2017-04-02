@@ -19,6 +19,7 @@
 	padding: 10px; 
 	background-color: ;
 	box-sizing: border-box;
+	text-align:right;
 }
 
 .dialogr__footer button {
@@ -31,6 +32,10 @@
 .dialogr__footer button:first-child:not([disabled]),
 .dialogr2__footer button:first-child {
 	border-color: steelblue;
+}
+
+.dialogr__footer button:first-child{
+	font-weight: bold;
 }
 
 .dialogr2 {
