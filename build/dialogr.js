@@ -9,15 +9,7 @@
           title : null,
           breakpointW : 600,  // Always snap to fullscreen if window width <= n
           breakpointH : 500,  // Always snap to fullscreen if window height <= n
-         // buttons : ["Ok", "Cancel"],
-          /*init : function(e) {
-              var d = document.createElement('div');
-              d.style.backgroundColor = 'yellow';
-              d.innerHTML = "<p>hejsan alla glada</p>";
-
-              e.parentNode.appendChild(d);
-
-          },*/
+          buttons : [],
           param : null,
           maxWidth : null,
           minWidth : 0
@@ -347,7 +339,7 @@
   	}
 
   	global.Deferred = D;
-  })(this);
+  })(self);
   /*
       General utility functions
   */
@@ -372,10 +364,40 @@
    * This function will merge the dialog defined buttons with the ones used when opening the dialog
    */
   function mergeDialogButtons(dialogButtons, openerButtons) {
-      console.warn("Dialog", dialogButtons)
-      console.warn("Opener", openerButtons)
+      var newButtonIndexes = [],
+          maxIndex = 0;
 
-      return [];
+        // Update existing buttons
+        for (var i=0; i < openerButtons.length; i++) {
+          var n = openerButtons[i].name,
+              isNew = true;
+          for (var j=0; j < dialogButtons.length; j++) {
+          if (dialogButtons[i].index > maxIndex)
+              maxIndex = dialogButtons[i].index;
+            var n2 = dialogButtons[j].name;
+            if (n2 == n) {
+              if (openerButtons[i].text)
+                dialogButtons[j].text = openerButtons[i].text;
+              isNew = false;
+              break;
+            }
+          }
+          if(isNew) {
+            newButtonIndexes.push(i);
+          }
+        }
+
+        for (i = 0; i < newButtonIndexes.length; i+=1) {
+          dialogButtons.push( openerButtons[i] );
+        }
+
+        dialogButtons.sort(function(a,b) {
+          if (a.index > b.index) return 1;
+          if (a.index < b.index) return -1;
+          return 0;
+        });
+
+      return dialogButtons;
   }
 
   function hashCode(str) {
@@ -397,7 +419,7 @@
                   for (var prop in source) {
                       if (source[prop] === null || isUndefined(source[prop])) {
                           delete obj[prop];
-                      } else if (source[prop].constructor === Object) {
+                      } else if (source[prop].constructor === Object && !isArray(source[prop])) {
                           if (!obj[prop] || obj[prop].constructor === Object) {
                               obj[prop] = obj[prop] || {};
                               extend(obj[prop], source[prop]);
@@ -412,6 +434,9 @@
           });
           return obj;
       }
+
+      window.ex = extend;
+
 
 
   function makeUrl(parsedUrlObject) {
@@ -467,7 +492,7 @@
   }
 
   function isArray(o) {
-      return o.constructor === Array;
+      return !isUndefined(o) && o.constructor === Array;
   }
 
   function logError(message) {
@@ -577,7 +602,11 @@
   function setAttribute(element, attributes) {
       var i, keys = getKeys(attributes);
       for (i=0; i < keys.length; i++ ) {
-          element.setAttribute(keys[i], attributes[keys[i]]);
+          if (attributes[keys[i]] !== null) {
+              element.setAttribute(keys[i], attributes[keys[i]]);
+          } else {
+              element.removeAttribute(keys[i]);
+          }
       }
       return element;
   }
@@ -696,6 +725,11 @@
           _eventHandlers = {};
       }
 
+      function newid() {
+          _messageId++;
+          return _messageIdPrefix + "_" + _messageId;
+      }
+
       function on(eventName, callback) {
           if (isUndefined(_eventHandlers[eventName])) _eventHandlers[eventName] = [];
           _eventHandlers[eventName].push(callback);
@@ -716,12 +750,11 @@
           }, options || {});
 
           if (!options.messageId) {
-              _messageId++;
-              options.messageId =  _messageIdPrefix + "_" + _messageId;
+              options.messageId =  newid();
           }
 
           var sendToTargetWindow = 'mother',
-              messagesToMother = ['$c', '$b', '$m', '$n']; 
+              messagesToMother = ['dialogr.close', 'dialogr.block', 'dialogr.unblock', 'dialogr.open']; 
           if (customTargetWindow) {
               sendToTargetWindow = "custom target window";
           } else if (_weAre !== null) {
@@ -754,11 +787,14 @@
 
           resolvedTargetWindow.postMessage(JSON.stringify(message), '*');
 
-      }
+      }   
 
       function messageHandler(e) {
+
+          //console.warn("[handleMessage]",window.location.href.substr( window.location.href.lastIndexOf('/') ), e);
+
           if (e.source == window) {
-          return;
+              return;
           }
 
           function callbackReady(data) {
@@ -795,20 +831,19 @@
 
           var o,i,fnRet;
           try { o = JSON.parse(e.data); } catch(ev) {}
+
           if (o) {
               if (!isUndefined(o.source) && o.source === "dialogr") {
                       
 
                   if (!_boundDialogId) {
-                      if (o.messageType.indexOf('$o') === -1) {
+                      if (o.messageType.indexOf('dialogr.find-opener') === -1) {
                           return;
                       }
                   } else if (_boundDialogId !== o.dialogrId) {
                       return;
                   }
-
                   if(!isUndefined(_eventHandlers[o.messageType])) {
-                     // console.warn("handlers", eventingDialogId, _eventHandlers);
                       if (!o.await) {
                           for (i = 0; i < _eventHandlers[o.messageType].length; i++) {
                               fnRet = _eventHandlers[o.messageType][i](o.messageData, o, e);
@@ -938,6 +973,7 @@
       }
 
       return {
+          newid : newid,
           send : send,
           await : sendAndWait,
           setDialogrId : setDialogrId,
@@ -990,7 +1026,7 @@
       function onResize(elements, dialogOptions) {
 
           var dialogElement = elements.dialog,
-              dialogElement__loaderOverlay = elements.p,
+              dialogElement__loaderOverlay = elements.dialogElementLoaderOverlay_r,
               dialogElement__content = elements.content,
               dialogElement__footer = elements.footer,
               dialogElement__loader = elements.loader,
@@ -1187,22 +1223,22 @@
               display : STYLE_DISPLAY_BLOCK
           });
           invokeCreateElementCallback('header',dialogElement__header,dialogOptions);
-
-          function createButton(buttonName, buttonHtml) {
+   
+          function createButton(button) {
               return setInnerHtml(
                   setAttribute(
                       createElement('button'), {
-                          id : 'button_' + id + '_' + buttonName,
-                          onclick : "dialogr.trigger(\"" + id + "\", \"button_" + buttonName + "\");",
-                          class : "dialogr__button button_" + buttonName
+                          id : 'button_' + id + '_' + button.name,
+                          onclick : "dialogr.trigger(\"" + id + "\", \"button_" + button.name + "\", null, true);",
+                          class : "dialogr__button button_" + button.name,
+                          disabled : button.disabled === true ? "disabled" : null
                       }
-                  ), buttonHtml);
+                  ), button.text);
           }
 
 
 
            function createButtons(dialogOptions) {
-
               var buttonCount = 0,
                   btn,
                   keys,
@@ -1215,26 +1251,12 @@
 
                   dialogElement__buttons = [];
           
-              if(!isUndefined(dialogOptions.buttons)) {
-                  if (dialogOptions.buttons.constructor === Array) {
-                      for (i=0; i < dialogOptions.buttons.length; i++) {
-                          btn = createButton(i, dialogOptions.buttons[i]);
-                          appendChildren(dialogElement__footer, [btn]);
-                          dialogElement__buttons["button_" + i] = btn;
-                          buttonCount++;
-                      }
-                  } else if (typeof dialogOptions.buttons === "object") {
-                      keys = getKeys(dialogOptions.buttons)
-                      for (i=0; i < keys.length; i++) {
-                          o = dialogOptions.buttons[keys[i]];
-                          btn = createButton(keys[i], o.text);
-                          appendChildren(dialogElement__footer, [btn]);
-                           if (o.disabled == true) {
-                              setAttribute(btn, {disabled : 'disabled'})
-                            }
-                          dialogElement__buttons["button_" + keys[i]] = btn;
-                          buttonCount++;
-                      }
+              if(isArray(dialogOptions.buttons)) {
+                  for (i=0; i < dialogOptions.buttons.length; i++) {
+                      btn = createButton(dialogOptions.buttons[i]);
+                      appendChildren(dialogElement__footer, [btn]);
+                      dialogElement__buttons["button_" + dialogOptions.buttons[i].name] = btn;
+                      buttonCount++;
                   }
               }
 
@@ -1248,12 +1270,14 @@
           } else {
               setInnerHtml(dialogElement__header, "<a href='javascript:dialogr.close(\"" + id + "\")'>x</a><h1>" + dialogOptions.title + "</h1>");
           }
+
+          //if (dialogOptions.$$.isMother   )
           createButtons(dialogOptions);
           appendChildren(dialogElement__loaderOverlay, [dialogElement__loader]);
           appendChildren(dialogElement, [dialogElement__header, dialogElement__content, dialogElement__footer, dialogElement__loaderOverlay]);
           return {
-              o : dialogElement__overlay,
-              p : dialogElement__loaderOverlay,
+              dialogElementOverlay_r : dialogElement__overlay,
+              dialogElementLoaderOverlay_r : dialogElement__loaderOverlay,
               loader : dialogElement__loader,
               dialog : dialogElement,
               header : dialogElement__header,
@@ -1282,8 +1306,8 @@
 
       
 
-      function refineUserOptions(options) {
-          var keys, i, b, p = 0;
+      function refineUserOptions(options, buttonIndexStart) {
+          var keys, i, b, p = buttonIndexStart || 0;
           // Fix sizes
          /* options.width = normalizeSize(options.width, window.innerWidth);
           options.height = normalizeSize(options.height, window.innerHeight);
@@ -1292,6 +1316,9 @@
           options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + STYLE_UNIT_PIXELS;
   */
           // Normalize buttons
+          if (isUndefined(options.buttons))
+              options.buttons = [];
+
           if(isArray(options.buttons)) {
               b = [];
               for (i=0; i < options.buttons.length; i++) {
@@ -1312,7 +1339,6 @@
           } else {
            logError("buttons must be an array");   
           }
-          console.warn("refinedOptions", options);
           return options;
       }
 
@@ -1326,7 +1352,7 @@
               _isMother = options.$$.isMother,
               _thisId = null;
 
-          _dialogOptions = extend({}, dialogrDefaults, refineUserOptions(options));
+          _dialogOptions = extend({}, dialogrDefaults, refineUserOptions(options, 1000));
           _dialogOptions.maxWidth = normalizeSize(_dialogOptions.maxWidth, window.outerWidth);
           _dialogOptions.minWidth = normalizeSize(_dialogOptions.minWidth, window.outerWidth);
 
@@ -1358,17 +1384,18 @@
           var dialogDeferred = self.Deferred(),
               _eventing = new EventingManager(_thisId, null, fakeContext, openerDialogId);
               _eventing.setIdentity(_weAre),
-              _disableScrollForElements = [];
+              _disableScrollForElements = [],
+              _originalStyles = [];
           
            /**
             * If we are the father window we must listen for the event from the dialog
             * that attempts to find the father.
             */
            if (_weAre.father) {
-              _eventing.on('$f', function(d, msg, msgEvent) {
+              _eventing.on('dialogr.find-father', function(d, msg, msgEvent) {
                   if (_weAre.fatherTo == d.childId) {
                       _eventing.setNamedTarget('child', msgEvent.source);
-                      _eventing.send('$k', null, null, msgEvent.source);
+                      _eventing.send('dialogr.i-am-your-father', null, null, msgEvent.source);
                   }
               }); 
 
@@ -1380,26 +1407,26 @@
             */
           if (_weAre.mother) {
 
-              _eventing.on('$h', function(buttonName) {
+              _eventing.on('dialogr.disable-button', function(buttonName) {
                   if (_elements.buttons[buttonName]) {
                       _elements.buttons[buttonName].setAttribute(ATTR_DISABLED,ATTR_DISABLED);
                   }
               })
-              .on('$i', function(buttonName) {
+              .on('dialogr.enable-button', function(buttonName) {
                   if (_elements.buttons[buttonName]) {
                       _elements.buttons[buttonName].removeAttribute(ATTR_DISABLED);
                   }
               })
-              .on('$a', function(e) {
+              .on('dialogr.set-text', function(e) {
                   if (_elements.buttons[e.element]) {
                       _elements.buttons[e.element].innerText = e.value;
                   }
               })
-              .on('$g', function(e) {
+              .on('dialogr.set-html', function(e) {
                   if (_elements.buttons[e.element]) {
                       _elements.buttons[e.element].innerHTML = e.value;
                   }
-              }).on('$l', function(e) {
+              }).on('dialogr.buttons', function(e) {
                   if (_elements.buttons[e.element]) {
                       _elements.buttons[e.element].innerHTML = e.value;
                   }
@@ -1410,8 +1437,7 @@
            * Listen for the event that tries to connect the dialog frame to its opening window
            * This is invoked from the dialog when dialogr.ready() is called
            */
-          _eventing.on('$o', function(data, msg, e) {
-
+          _eventing.on('dialogr.find-opener', function(data, msg, e) {
               // Ignore opener events from other dialogs.
               // It is unlikely there would be any, but you never know...
               if (_thisId != data.id) {
@@ -1440,12 +1466,11 @@
                   if (_dialogOptions.buttons) {
 
                       // console.log("[dialogr] MERGE BUTTONS:", data.options.buttons, _dialogOptions.buttons);
-                      mergeDialogButtons(data.options.buttons, _dialogOptions.buttons);
+                      data.options.buttons = mergeDialogButtons(data.options.buttons, _dialogOptions.buttons);
 
-                      data.options.buttons = extend({}, data.options.buttons, _dialogOptions.buttons);
+                  //    data.options.buttons = extend({}, data.options.buttons, _dialogOptions.buttons);
                   }
 
-                  
                   if (data.options.buttons) {
 
                       updateSize = true;
@@ -1475,33 +1500,33 @@
               onResize(_elements, _dialogOptions);
           }
 
-          _eventing.on('$e', function(d) {
+          _eventing.on('dialogr.reject', function(d) {
               dialogDeferred.reject(d);
               _currentDialog.close();
           });
 
-          _eventing.on('$j', function(d) {
+          _eventing.on('dialogr.resolve', function(d) {
               dialogDeferred.resolve(d);
               _currentDialog.close();
           });
 
-          _eventing.on('$c', function(d,e,f) {
+          _eventing.on('dialogr.close', function(d,e,f) {
             // console.warn("Received close",d,e,f);
               _currentDialog.close();
           });
 
-          _eventing.on('$b', function() {
-              _elements.p.style.visibility = STYLE_VISIBILITY_VISIBLE;
+          _eventing.on('dialogr.block', function() {
+              _elements.dialogElementLoaderOverlay_r.style.visibility = STYLE_VISIBILITY_VISIBLE;
           });
 
-          _eventing.on('$m', function() {
-              _elements.p.style.visibility = STYLE_VISIBILITY_HIDDEN;
+          _eventing.on('dialogr.unblock', function() {
+              _elements.dialogElementLoaderOverlay_r.style.visibility = STYLE_VISIBILITY_HIDDEN;
               _elements.content.style.visibility = STYLE_VISIBILITY_VISIBLE;
           });
 
           if ( _isMother ) {
 
-              _eventing.on('$n', function(d) {
+              _eventing.on('dialogr.open', function(d) {
                   var deferred = self.Deferred();
                   d.options.$$.isMother = true;
                   d.options.$$.isFather = false;
@@ -1512,8 +1537,8 @@
                   return deferred.promise();
               });
 
+              // We make sure that the DOM is loaded before we create elements 
               winloadDeferred.done(function() {
-                  console.warn("DOM Ready! Create elements");
 
                   _elements = createDialogElements(_thisId, _dialogOptions);
 
@@ -1522,7 +1547,7 @@
                   i = document.getElementsByTagName('body');
                   if (i.length == 1) _disableScrollForElements.push(i[0]);
 
-                  var _originalStyles = [];
+                  
                   for (i=0; i < _disableScrollForElements.length; i++) {
                       _originalStyles.push(getStyle(_disableScrollForElements[i], STYLE_OVERFLOW_Y));
                       setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : STYLE_VISIBILITY_HIDDEN});
@@ -1553,7 +1578,7 @@
                   }
               }
              if (_weAre.father && !_weAre.mother) {
-                  _eventing.send('$c');
+                  _eventing.send('dialogr.close');
              } else if (_weAre.mother) {
                  for (var i=0; i < _dialogs.length; i++) {
                   if (_dialogs[i].id == _currentDialog.id) {
@@ -1561,9 +1586,9 @@
                       break;
                   }
                  }
-                 if (_elements && _elements.dialog && _elements.dialog.parentNode && _elements.o) {
+                 if (_elements && _elements.dialog && _elements.dialog.parentNode && _elements.dialogElementOverlay_r) {
                      _elements.dialog.parentNode.removeChild(_elements.dialog);
-                     _elements.o.parentNode.removeChild(_elements.o);
+                     _elements.dialogElementOverlay_r.parentNode.removeChild(_elements.dialogElementOverlay_r);
                  }
               }
           };
@@ -1616,11 +1641,12 @@
       options = refineUserOptions(options);
 
       // Find the opening window.
-      _eventing.await('$o', {
+      _eventing.await('dialogr.find-opener', {
           dialogUrl : window.location.toString(),
           id : dialogrIdParameter,
+          hej : options.buttons,
           options : options
-      }, openingWindow).then(function(data) {
+      }, options, openingWindow).then(function(data) {
           var weAre = {
               child : true,
               motherIdentified : true,
@@ -1633,8 +1659,8 @@
           if (data.opener) {
               weAre.fatherIdentified = false;
               _eventing.setIdentity(weAre);
-              _eventing.on('$k', function(data, msg, msgEvent) {
-                  _eventing.off('$k');
+              _eventing.on('dialogr.i-am-your-father', function(data, msg, msgEvent) {
+                  _eventing.off('dialogr.i-am-your-father');
                   //console.info("OK! We know who our father is!!", data,msg,msgEvent);
                   _eventing.setNamedTarget('father', msgEvent.source);
                   _context.unblock();
@@ -1643,7 +1669,7 @@
               //console.warn("["+data.dialogrId+"] WE ARE CHILD (context) (I know mother - where's father?)", data, window.location.href);
               var t= win.parent;
               for (var i=0; i < t.window.frames.length; i++) {
-                  _eventing.send('$f', { "frame" : i, "childId" : dialogrIdParameter }, null, t.window.frames[i]);
+                  _eventing.send('dialogr.find-father', { "frame" : i, "childId" : dialogrIdParameter }, null, t.window.frames[i]);
               }
           } else {
               _eventing.setIdentity(weAre);
@@ -1661,23 +1687,23 @@
       //this.$$el = _elements;
 
       this.enable = function(button) {
-          _context.trigger('$i', button);
+          _context.trigger('dialogr.enable-button', button);
       };
       this.disable = function(button) {
-          _context.trigger('$h', button);
+          _context.trigger('dialogr.disable-button', button);
       };
       this.addClass = function(elementName, className) {};
       this.removeClass = function(elementName, className) {};
       this.css = function(elementName, styleName, styleValue) {};
       this.attr = function(elementName, key, value) {};
       this.text = function(elementName, newValue) {
-          _context.trigger('$a', {
+          _context.trigger('dialogr.set-text', {
               element : elementName, 
               value : newValue
           });
       };
       this.html = function(elementName, newValue) {
-          _context.trigger('$g', {
+          _context.trigger('dialogr.set-html', {
               element : elementName, 
               value : newValue
           });
@@ -1696,37 +1722,54 @@
       };
 
       this.close = function() {
-          _eventing.send('$c');
+          _eventing.send('dialogr.close');
       };
       this.block = function() {
-          _eventing.send('$b');
+          _eventing.send('dialogr.block');
       };
       this.unblock = function() {
-          _eventing.send('$m');
+          _eventing.send('dialogr.unblock');
       };
       this.resolve = function(data) {
-          _eventing.send('$j', data);
+          _eventing.send('dialogr.resolve', data);
       };
       this.reject = function(data){
-          _eventing.send('$e', data);
+          _eventing.send('dialogr.reject', data);
       };
       this.buttons = function(data) {
-          _eventing.send('$l', data);
+          _eventing.send('dialogr.buttons', data);
       };
       this.param = {};
       };
   function Dialogr() {
 
-  function trigger(dialogId, name, data) {
+
+
+  function trigger(dialogId, name, data, sendToSelf) {
       for (var i=0; i < _dialogs.length; i++) {
           if (_dialogs[i].id == dialogId) {
               _dialogs[i].trigger(name, data);
+              if (sendToSelf) { 
+                  _dialogs[i].$$e.handleMessage({
+                      source : 'self',
+                      data : JSON.stringify({
+                          source : "dialogr",
+                          messageType : name,
+                          messageData : data,
+                          messageId : _dialogs[i].$$e.newid(),
+                          fromLocation : window.location.href,
+                          await : false,
+                          dialogrId : dialogId
+                      })
+                  });
+              }
               break;
           }
       }
   }
 
   function triggerAs(dialogId, name, data, asDialogId) {
+
       for (var i=0; i < _dialogs.length; i++) {
           if (_dialogs[i].id == dialogId) {
               _dialogs[i].triggerAs(name, data, asDialogId);
@@ -1820,14 +1863,11 @@
           openDialogs = _dialogs.slice(0);
           options = options || {};
       
-      
-
-
           if (_dialogContext) {
               options.$$.isMother = false;
               dialogInstance = new DialogrDialog(options, {}, true);
 
-              _dialogContext.invoke('$n', {
+              _dialogContext.invoke('dialogr.open', {
                   options : extend({}, options, 
                           { 
                               $$ : { 
@@ -1862,6 +1902,12 @@
 
   }
 
+  /**
+   * Tell Dialogr that the Dialog Application is ready to be shown to the user
+   *
+   * @param      {<type>}  options  The options
+   * @return     {<type>}  { description_of_the_return_value }
+   */
   function ready(options) {
 
       var deferred = self.Deferred();

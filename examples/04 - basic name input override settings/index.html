@@ -16,15 +16,21 @@
 					name : first ? "" : nameDisplay.innerText
 				};
 
-			dialogr.open("name-input.html", parameters, {
+			var dd = dialogr.open("name-input.html", parameters, {
 				buttons : [
-					"apa"
-				], 
+					{name : "new", text : "Open default dialog"},
+					{name : "ok", text : "A custom OK-text"}
+				],
 				width : '500px'
 			})
 			.on('button_new', function() {
 				// Aha, someone clicked on our extra button
-				alert("Ja");
+				dialogr.open("name-input.html").done(function(r) {
+					alert("You entered " + r);
+					nameDisplay.innerText = r;
+					first = false;
+					dd.close();
+				});
 			})
 			.done(function(result) {
 
@@ -35,24 +41,6 @@
 			});
 
 		}
-
-			dialogr.open("name-input.html", {}, {
-				buttons : [
-					"apa"
-				], 
-				width : '500px'
-			})
-			.on('button_new', function() {
-				// Aha, someone clicked on our extra button
-				alert("Ja");
-			})
-			.done(function(result) {
-
-				// The dialog returned a successful result
-				nameDisplay.innerText = result;
-
-				first = false;
-			});
 
 	</script>
 </head>

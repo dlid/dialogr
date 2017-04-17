@@ -230,22 +230,22 @@
             display : STYLE_DISPLAY_BLOCK
         });
         invokeCreateElementCallback('header',dialogElement__header,dialogOptions);
-
-        function createButton(buttonName, buttonHtml) {
+ 
+        function createButton(button) {
             return setInnerHtml(
                 setAttribute(
                     createElement('button'), {
-                        id : 'button_' + id + '_' + buttonName,
-                        onclick : "dialogr.trigger(\"" + id + "\", \"button_" + buttonName + "\");",
-                        class : "dialogr__button button_" + buttonName
+                        id : 'button_' + id + '_' + button.name,
+                        onclick : "dialogr.trigger(\"" + id + "\", \"button_" + button.name + "\", null, true);",
+                        class : "dialogr__button button_" + button.name,
+                        disabled : button.disabled === true ? "disabled" : null
                     }
-                ), buttonHtml);
+                ), button.text);
         }
 
 
 
          function createButtons(dialogOptions) {
-
             var buttonCount = 0,
                 btn,
                 keys,
@@ -258,26 +258,12 @@
 
                 dialogElement__buttons = [];
         
-            if(!isUndefined(dialogOptions.buttons)) {
-                if (dialogOptions.buttons.constructor === Array) {
-                    for (i=0; i < dialogOptions.buttons.length; i++) {
-                        btn = createButton(i, dialogOptions.buttons[i]);
-                        appendChildren(dialogElement__footer, [btn]);
-                        dialogElement__buttons["button_" + i] = btn;
-                        buttonCount++;
-                    }
-                } else if (typeof dialogOptions.buttons === "object") {
-                    keys = getKeys(dialogOptions.buttons)
-                    for (i=0; i < keys.length; i++) {
-                        o = dialogOptions.buttons[keys[i]];
-                        btn = createButton(keys[i], o.text);
-                        appendChildren(dialogElement__footer, [btn]);
-                         if (o.disabled == true) {
-                            setAttribute(btn, {disabled : 'disabled'})
-                          }
-                        dialogElement__buttons["button_" + keys[i]] = btn;
-                        buttonCount++;
-                    }
+            if(isArray(dialogOptions.buttons)) {
+                for (i=0; i < dialogOptions.buttons.length; i++) {
+                    btn = createButton(dialogOptions.buttons[i]);
+                    appendChildren(dialogElement__footer, [btn]);
+                    dialogElement__buttons["button_" + dialogOptions.buttons[i].name] = btn;
+                    buttonCount++;
                 }
             }
 
@@ -291,6 +277,8 @@
         } else {
             setInnerHtml(dialogElement__header, "<a href='javascript:dialogr.close(\"" + id + "\")'>x</a><h1>" + dialogOptions.title + "</h1>");
         }
+
+        //if (dialogOptions.$$.isMother   )
         createButtons(dialogOptions);
         appendChildren(dialogElement__loaderOverlay, [dialogElement__loader]);
         appendChildren(dialogElement, [dialogElement__header, dialogElement__content, dialogElement__footer, dialogElement__loaderOverlay]);

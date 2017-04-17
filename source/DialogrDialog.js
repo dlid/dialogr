@@ -2,8 +2,8 @@
 
     
 
-    function refineUserOptions(options) {
-        var keys, i, b, p = 0;
+    function refineUserOptions(options, buttonIndexStart) {
+        var keys, i, b, p = buttonIndexStart || 0;
         // Fix sizes
        /* options.width = normalizeSize(options.width, window.innerWidth);
         options.height = normalizeSize(options.height, window.innerHeight);
@@ -12,6 +12,9 @@
         options.top =  Math.ceil( (window.innerHeight/2) - (parseInt(options.height,10) / 2)) + STYLE_UNIT_PIXELS;
 */
         // Normalize buttons
+        if (isUndefined(options.buttons))
+            options.buttons = [];
+
         if(isArray(options.buttons)) {
             b = [];
             for (i=0; i < options.buttons.length; i++) {
@@ -32,7 +35,6 @@
         } else {
          logError("buttons must be an array");   
         }
-        console.warn("refinedOptions", options);
         return options;
     }
 
@@ -46,7 +48,7 @@
             _isMother = options.$$.isMother,
             _thisId = null;
 
-        _dialogOptions = extend({}, dialogrDefaults, refineUserOptions(options));
+        _dialogOptions = extend({}, dialogrDefaults, refineUserOptions(options, 1000));
         _dialogOptions.maxWidth = normalizeSize(_dialogOptions.maxWidth, window.outerWidth);
         _dialogOptions.minWidth = normalizeSize(_dialogOptions.minWidth, window.outerWidth);
 
@@ -78,7 +80,8 @@
         var dialogDeferred = self.Deferred(),
             _eventing = new EventingManager(_thisId, null, fakeContext, openerDialogId);
             _eventing.setIdentity(_weAre),
-            _disableScrollForElements = [];
+            _disableScrollForElements = [],
+            _originalStyles = [];
         
          /**
           * If we are the father window we must listen for the event from the dialog
@@ -131,7 +134,6 @@
          * This is invoked from the dialog when dialogr.ready() is called
          */
         _eventing.on('dialogr.find-opener', function(data, msg, e) {
-
             // Ignore opener events from other dialogs.
             // It is unlikely there would be any, but you never know...
             if (_thisId != data.id) {
@@ -160,12 +162,11 @@
                 if (_dialogOptions.buttons) {
 
                     // console.log("[dialogr] MERGE BUTTONS:", data.options.buttons, _dialogOptions.buttons);
-                    mergeDialogButtons(data.options.buttons, _dialogOptions.buttons);
+                    data.options.buttons = mergeDialogButtons(data.options.buttons, _dialogOptions.buttons);
 
-                    data.options.buttons = extend({}, data.options.buttons, _dialogOptions.buttons);
+                //    data.options.buttons = extend({}, data.options.buttons, _dialogOptions.buttons);
                 }
 
-                
                 if (data.options.buttons) {
 
                     updateSize = true;
@@ -242,7 +243,7 @@
                 i = document.getElementsByTagName('body');
                 if (i.length == 1) _disableScrollForElements.push(i[0]);
 
-                var _originalStyles = [];
+                
                 for (i=0; i < _disableScrollForElements.length; i++) {
                     _originalStyles.push(getStyle(_disableScrollForElements[i], STYLE_OVERFLOW_Y));
                     setStyle(_disableScrollForElements[i], {STYLE_OVERFLOW_Y : STYLE_VISIBILITY_HIDDEN});

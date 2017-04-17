@@ -41,7 +41,7 @@ gulp.task('update-deferred-js', function() {
       		'node_modules/deferred-js/js/deferred.js',
 		])
 	 .pipe(concat('_deferred_temp.js'))
-	 .pipe(replace(/\(window\);/, '(this);'))
+	 .pipe(replace(/\(window\);/, '(self);'))
 	 //.pipe(replace(/obj == null/g, 'obj === null'))
  
 	 .pipe(gulp.dest('build'))
@@ -69,6 +69,15 @@ gulp.task('scripts', function() {
       .pipe(concat('dialogr.js'))
     	.pipe(inject.wrap(to_inject()[0], to_inject()[1]))
 
+    	.pipe(jshint())
+    	.pipe(jshint.reporter('default'))
+      .pipe(indent({
+          tabs:false,
+          amount:2
+      }))
+      .pipe(gulp.dest('build'))
+
+      
       // Shorten some strings for a smaller minified file
       // Replace some long internal messages to something shorter
       .pipe(replace("'dialogr.set-text'", "'$a'"))
@@ -90,13 +99,6 @@ gulp.task('scripts', function() {
       .pipe(replace("dialogElementOverlay_r", 'o'))
       .pipe(replace("dialogElementLoaderOverlay_r", 'p'))
 
-    	.pipe(jshint())
-    	.pipe(jshint.reporter('default'))
-      .pipe(indent({
-          tabs:false,
-          amount:2
-      }))
-      .pipe(gulp.dest('build'))
 
       .pipe(rename({suffix: '.min'}))
       .pipe(uglify({

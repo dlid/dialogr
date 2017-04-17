@@ -41,12 +41,20 @@
 		      }
 		    }
 
+		    var _okButtonEnabled = false;
+
 		    // Simple timer to enable/disable ok-button
 		   setInterval(function() {
 					if (nameInput.value == "") {
-		    		dlgCtx.disable('button_ok');
+						if (_okButtonEnabled) {
+			    		dlgCtx.disable('button_ok');
+			    		_okButtonEnabled = false;
+			    	}
 		    	} else {
-		    		dlgCtx.enable('button_ok');
+						if (!_okButtonEnabled) {
+		    			dlgCtx.enable('button_ok');
+		    				_okButtonEnabled = true	;
+		    		}
 		    	}
 		    }, 200)
 

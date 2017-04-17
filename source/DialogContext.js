@@ -20,8 +20,9 @@ function DialogContext(openingWindow, successCallback, failCallback, options) {
     _eventing.await('dialogr.find-opener', {
         dialogUrl : window.location.toString(),
         id : dialogrIdParameter,
+        hej : options.buttons,
         options : options
-    }, openingWindow).then(function(data) {
+    }, options, openingWindow).then(function(data) {
         var weAre = {
             child : true,
             motherIdentified : true,

@@ -21,6 +21,11 @@ var EventingManager = function EventingManager(eventingDialogId, targetWindow, i
         _eventHandlers = {};
     }
 
+    function newid() {
+        _messageId++;
+        return _messageIdPrefix + "_" + _messageId;
+    }
+
     function on(eventName, callback) {
         if (isUndefined(_eventHandlers[eventName])) _eventHandlers[eventName] = [];
         _eventHandlers[eventName].push(callback);
@@ -41,8 +46,7 @@ var EventingManager = function EventingManager(eventingDialogId, targetWindow, i
         }, options || {});
 
         if (!options.messageId) {
-            _messageId++;
-            options.messageId =  _messageIdPrefix + "_" + _messageId;
+            options.messageId =  newid();
         }
 
         var sendToTargetWindow = 'mother',
@@ -79,11 +83,14 @@ var EventingManager = function EventingManager(eventingDialogId, targetWindow, i
 
         resolvedTargetWindow.postMessage(JSON.stringify(message), '*');
 
-    }
+    }   
 
     function messageHandler(e) {
+
+        //console.warn("[handleMessage]",window.location.href.substr( window.location.href.lastIndexOf('/') ), e);
+
         if (e.source == window) {
-        return;
+            return;
         }
 
         function callbackReady(data) {
@@ -120,6 +127,7 @@ var EventingManager = function EventingManager(eventingDialogId, targetWindow, i
 
         var o,i,fnRet;
         try { o = JSON.parse(e.data); } catch(ev) {}
+
         if (o) {
             if (!isUndefined(o.source) && o.source === "dialogr") {
                     
@@ -131,9 +139,7 @@ var EventingManager = function EventingManager(eventingDialogId, targetWindow, i
                 } else if (_boundDialogId !== o.dialogrId) {
                     return;
                 }
-
                 if(!isUndefined(_eventHandlers[o.messageType])) {
-                   // console.warn("handlers", eventingDialogId, _eventHandlers);
                     if (!o.await) {
                         for (i = 0; i < _eventHandlers[o.messageType].length; i++) {
                             fnRet = _eventHandlers[o.messageType][i](o.messageData, o, e);
@@ -263,6 +269,7 @@ var EventingManager = function EventingManager(eventingDialogId, targetWindow, i
     }
 
     return {
+        newid : newid,
         send : send,
         await : sendAndWait,
         setDialogrId : setDialogrId,

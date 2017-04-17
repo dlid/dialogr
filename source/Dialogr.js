@@ -1,15 +1,32 @@
 function Dialogr() {
 
-function trigger(dialogId, name, data) {
+
+
+function trigger(dialogId, name, data, sendToSelf) {
     for (var i=0; i < _dialogs.length; i++) {
         if (_dialogs[i].id == dialogId) {
             _dialogs[i].trigger(name, data);
+            if (sendToSelf) { 
+                _dialogs[i].$$e.handleMessage({
+                    source : 'self',
+                    data : JSON.stringify({
+                        source : "dialogr",
+                        messageType : name,
+                        messageData : data,
+                        messageId : _dialogs[i].$$e.newid(),
+                        fromLocation : window.location.href,
+                        await : false,
+                        dialogrId : dialogId
+                    })
+                });
+            }
             break;
         }
     }
 }
 
 function triggerAs(dialogId, name, data, asDialogId) {
+
     for (var i=0; i < _dialogs.length; i++) {
         if (_dialogs[i].id == dialogId) {
             _dialogs[i].triggerAs(name, data, asDialogId);
@@ -103,9 +120,6 @@ function open(options) {
         openDialogs = _dialogs.slice(0);
         options = options || {};
     
-    
-
-
         if (_dialogContext) {
             options.$$.isMother = false;
             dialogInstance = new DialogrDialog(options, {}, true);
@@ -145,6 +159,12 @@ function open(options) {
 
 }
 
+/**
+ * Tell Dialogr that the Dialog Application is ready to be shown to the user
+ *
+ * @param      {<type>}  options  The options
+ * @return     {<type>}  { description_of_the_return_value }
+ */
 function ready(options) {
 
     var deferred = self.Deferred();

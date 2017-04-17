@@ -22,10 +22,40 @@ function parseInteger(v) {
  * This function will merge the dialog defined buttons with the ones used when opening the dialog
  */
 function mergeDialogButtons(dialogButtons, openerButtons) {
-    console.warn("Dialog", dialogButtons)
-    console.warn("Opener", openerButtons)
+    var newButtonIndexes = [],
+        maxIndex = 0;
 
-    return [];
+      // Update existing buttons
+      for (var i=0; i < openerButtons.length; i++) {
+        var n = openerButtons[i].name,
+            isNew = true;
+        for (var j=0; j < dialogButtons.length; j++) {
+        if (dialogButtons[i].index > maxIndex)
+            maxIndex = dialogButtons[i].index;
+          var n2 = dialogButtons[j].name;
+          if (n2 == n) {
+            if (openerButtons[i].text)
+              dialogButtons[j].text = openerButtons[i].text;
+            isNew = false;
+            break;
+          }
+        }
+        if(isNew) {
+          newButtonIndexes.push(i);
+        }
+      }
+
+      for (i = 0; i < newButtonIndexes.length; i+=1) {
+        dialogButtons.push( openerButtons[i] );
+      }
+
+      dialogButtons.sort(function(a,b) {
+        if (a.index > b.index) return 1;
+        if (a.index < b.index) return -1;
+        return 0;
+      });
+
+    return dialogButtons;
 }
 
 function hashCode(str) {
@@ -47,7 +77,7 @@ function hashCode(str) {
                 for (var prop in source) {
                     if (source[prop] === null || isUndefined(source[prop])) {
                         delete obj[prop];
-                    } else if (source[prop].constructor === Object) {
+                    } else if (source[prop].constructor === Object && !isArray(source[prop])) {
                         if (!obj[prop] || obj[prop].constructor === Object) {
                             obj[prop] = obj[prop] || {};
                             extend(obj[prop], source[prop]);
@@ -62,6 +92,9 @@ function hashCode(str) {
         });
         return obj;
     }
+
+    window.ex = extend;
+
 
 
 function makeUrl(parsedUrlObject) {
@@ -117,7 +150,7 @@ function parseUrl(url) {
 }
 
 function isArray(o) {
-    return o.constructor === Array;
+    return !isUndefined(o) && o.constructor === Array;
 }
 
 function logError(message) {

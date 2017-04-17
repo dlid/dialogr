@@ -81,7 +81,11 @@ function appendChildren(element, soonToBeChildren) {
 function setAttribute(element, attributes) {
     var i, keys = getKeys(attributes);
     for (i=0; i < keys.length; i++ ) {
-        element.setAttribute(keys[i], attributes[keys[i]]);
+        if (attributes[keys[i]] !== null) {
+            element.setAttribute(keys[i], attributes[keys[i]]);
+        } else {
+            element.removeAttribute(keys[i]);
+        }
     }
     return element;
 }

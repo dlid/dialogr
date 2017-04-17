@@ -7,15 +7,7 @@
         title : null,
         breakpointW : 600,  // Always snap to fullscreen if window width <= n
         breakpointH : 500,  // Always snap to fullscreen if window height <= n
-       // buttons : ["Ok", "Cancel"],
-        /*init : function(e) {
-            var d = document.createElement('div');
-            d.style.backgroundColor = 'yellow';
-            d.innerHTML = "<p>hejsan alla glada</p>";
-
-            e.parentNode.appendChild(d);
-
-        },*/
+        buttons : [],
         param : null,
         maxWidth : null,
         minWidth : 0
