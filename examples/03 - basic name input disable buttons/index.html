@@ -37,7 +37,19 @@
 		<p>The result of the dialog will be retreived and the link is updated with the resulting text from the dialog.</p>
 
 		<ul>
-			<li>The dialog OK button is now disabled unless a proper name has been entered</li>
+			<li>
+			<p>The dialog OK button is now disabled unless a proper name has been entered</p>
+			<p>This is done inside the dialog using the DialogContext object.</p>
+
+			<pre>&lt;script&gt;
+ dialogContext.enable('button_ok')
+ // or
+ dialogContext.disable('button_ok')
+&lt;/script&gt;</pre>
+
+			<p class="ref">See: <a href="https://docs.dlid.se/dialogr#dialogcontext-object/enable">DialogContext/enable</a>, <a href="https://docs.dlid.se/dialogr#dialogcontext-object/disable">DialogContext/disable</a></p>
+			
+			</li>
 		</ul>
 
 	</div>

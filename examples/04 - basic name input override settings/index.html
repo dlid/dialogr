@@ -18,7 +18,7 @@
 
 			var dd = dialogr.open("name-input.html", parameters, {
 				buttons : [
-					{name : "new", text : "Open default dialog"},
+					{name : "new", text : "Open default dialog", index : 5},
 					{name : "ok", text : "A custom OK-text"}
 				],
 				width : '500px'
@@ -46,14 +46,36 @@
 </head>
 <body>
 	<div class="example">
-	<h1>03 - Name Input and enabling/disabling dialog buttons</h1>
-
+	<h1>04 - Name Input and enabling/disabling dialog buttons</h1>
+		
 		<p>In this basic example a dialog will open when you click the link below.</p>
 		<p>The result of the dialog will be retreived and the link is updated with the resulting text from the dialog.</p>
 
 		<ul>
-			<li>We override the buttons when we open the dialog to change the text. Note that the buttons ids still must be the same or the dialog will listen for the wrong events.</li>
-			<li>We also override the width of the dialog so it is 500px</li>
+			<li><p>The dialog will disable/enable the OK-button depending on the conent of the Name input field.</p>
+			<p>This is done using the <a href="http://docs.dlid.se/dialogr#dialogcontext-object/enable">enable</a> and <a href="http://docs.dlid.se/dialogr#dialogcontext-object/diasble">disable</a> methods of DialogContext.</p>
+			<pre>dlgCtx.enable('button_ok');</pre></li>
+
+		
+			<li><p>We override the buttons when we open the dialog to change the text. Note that the buttons ids still must be the same or the dialog will listen for the wrong events.</p>
+			<p>We set the index to 5 so it appears between the existing buttons</p>
+
+<pre>buttons : [
+ {name : "new", text : "Open default dialog", index : 5},
+ {name : "ok", text : "A custom OK-text"}
+]</pre>
+			</li>
+			<li>We listen for a click on our custom button
+			<pre>.on('button_new', function() {
+ ...
+})</pre></li>
+			<li>We also override the width of the dialog so it is 500px
+
+<pre>dialogr.open("name-input.html", parameters, {
+ width : '500px'
+})
+</pre>
+			</li>
 		</ul>
 
 	</div>
